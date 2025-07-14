@@ -163,6 +163,9 @@ class Game:
         self.volume = 0.5  # 初始音量为50%
         self.volume_display_time = 0
         self.volume_display_duration = 2000  # 显示2秒
+        
+        # 信息面板控制
+        self.show_info_panel = True  # 信息面板显示状态
         self.update_volume()  # 初始化音量
         
         # Game states
@@ -328,6 +331,55 @@ class Game:
         # If no Chinese font works, use default font
         cprint("警告：无法加载中文字体，使用默认字体。中文可能显示为方块。", "yellow")
         return pygame.font.Font(None, 36), pygame.font.Font(None, 74)
+    
+    def load_ui_fonts(self):
+        """Load UI fonts with different sizes based on Chinese font"""
+        # Try project fonts first
+        project_fonts = [
+            os.path.join(os.path.dirname(__file__), 'resources', 'fonts', 'Hiragino Sans GB.ttc'),
+        ]
+        
+        # System fonts as fallback
+        system_font_files = [
+            '/System/Library/Fonts/Hiragino Sans GB.ttc',
+            '/System/Library/Fonts/STHeiti Medium.ttc',
+            '/System/Library/Fonts/STHeiti Light.ttc',
+            '/System/Library/Fonts/CJKSymbolsFallback.ttc',
+        ]
+        
+        chinese_font_files = project_fonts + system_font_files
+        
+        # Try to load each font file directly
+        for font_path in chinese_font_files:
+            try:
+                title_font = pygame.font.Font(font_path, 32)   # 标题字体
+                main_font = pygame.font.Font(font_path, 24)    # 主要信息字体
+                small_font = pygame.font.Font(font_path, 20)   # 小字体
+                
+                # Test if the font can render Chinese characters
+                test_surface = main_font.render('中文测试', True, (255, 255, 255))
+                if test_surface.get_width() > 0:
+                    return title_font, main_font, small_font
+            except Exception as e:
+                continue
+        
+        # Try system fonts as fallback
+        system_fonts = ['STHeiti', 'Hiragino Sans GB', 'Arial Unicode MS']
+        for font_name in system_fonts:
+            try:
+                title_font = pygame.font.SysFont(font_name, 32)
+                main_font = pygame.font.SysFont(font_name, 24)
+                small_font = pygame.font.SysFont(font_name, 20)
+                
+                test_surface = main_font.render('中文测试', True, (255, 255, 255))
+                if test_surface.get_width() > 0:
+                    return title_font, main_font, small_font
+            except:
+                continue
+        
+        # If no Chinese font works, use default font
+        cprint("警告：无法加载UI中文字体，使用默认字体。中文可能显示为方块。", "yellow")
+        return pygame.font.Font(None, 32), pygame.font.Font(None, 24), pygame.font.Font(None, 20)
 
     def load_resources(self):
         """Load all game resources"""
@@ -368,6 +420,9 @@ class Game:
                     elif event.key == pygame.K_EQUALS:
                         self.volume = min(1.0, self.volume + 0.1)
                         self.update_volume()
+                    elif event.key == pygame.K_i:
+                        self.show_info_panel = not self.show_info_panel
+                        cprint(f"信息面板{'显示' if self.show_info_panel else '隐藏'}", "cyan")
                     # Formation control with number keys
                     elif event.key in [pygame.K_1, pygame.K_2, pygame.K_3]:
                         formation_type = event.key - pygame.K_1 + 1
@@ -645,14 +700,20 @@ class Game:
             shadow_color = (50, 50, 50)
             shadow_offset = 2
             
-            # 关卡显示 - 添加剩余敌人数量
-            enemies_left = len(self.enemies)
-            round_shadow = self.font.render(f'第 {self.current_round} 关 (剩余敌人: {enemies_left})', True, shadow_color)
-            round_text = self.font.render(f'第 {self.current_round} 关 (剩余敌人: {enemies_left})', True, (255, 215, 0))  # 金色
+            # 使用不同字体大小创建更美观的UI（基于已加载的中文字体）
+            title_font, main_font, small_font = self.load_ui_fonts()
             
-            # 得分显示
-            score_shadow = self.font.render(f'得分：{self.score}', True, shadow_color)
-            score_text = self.font.render(f'得分：{self.score}', True, (135, 206, 250))  # 天蓝色
+            # 关卡显示 - 使用主要字体保持一致
+            round_shadow = main_font.render(f'第 {self.current_round} 关', True, shadow_color)
+            round_text = main_font.render(f'第 {self.current_round} 关', True, (255, 215, 0))  # 金色
+            
+            # 总分显示 - 使用中等字体
+            score_shadow = main_font.render(f'总分: {self.score}', True, shadow_color)
+            score_text = main_font.render(f'总分: {self.score}', True, (135, 206, 250))  # 天蓝色
+            
+            # 当前关卡分数显示 - 使用中等字体
+            round_score_shadow = main_font.render(f'关卡分数: {self.round_score}', True, shadow_color)
+            round_score_text = main_font.render(f'关卡分数: {self.round_score}', True, (144, 238, 144))  # 浅绿色
             
             # 武器名称中文化和颜色映射
             weapon_names = {
@@ -667,34 +728,115 @@ class Game:
                 self.player_ships[0].current_weapon, 
                 (self.player_ships[0].current_weapon, WHITE)
             )
-            weapon_shadow = self.font.render(f'武器：{weapon_name} (TAB切换武器)', True, shadow_color)
-            weapon_text = self.font.render(f'武器：{weapon_name} (TAB切换武器)', True, weapon_color)
+            weapon_shadow = main_font.render(f'武器: {weapon_name} (TAB切换)', True, shadow_color)
+            weapon_text = main_font.render(f'武器: {weapon_name} (TAB切换)', True, weapon_color)
             
-            # 绘制带阴影的文本
-            screen.blit(round_shadow, (10 + shadow_offset, 10 + shadow_offset))
-            screen.blit(round_text, (10, 10))
+            # 信息面板切换功能
+            if self.show_info_panel:
+                # 完整信息面板
+                current_y = 10
+                
+                # 1. 关卡显示
+                screen.blit(round_shadow, (10 + shadow_offset, current_y + shadow_offset))
+                screen.blit(round_text, (10, current_y))
+                current_y += 30  # 减少间距，保持一致
+            else:
+                # 隐藏状态，只显示提示
+                hint_shadow = small_font.render('按 i 打开信息面板', True, shadow_color)
+                hint_text = small_font.render('按 i 打开信息面板', True, (200, 200, 200))
+                
+                screen.blit(hint_shadow, (10 + shadow_offset, 10 + shadow_offset))
+                screen.blit(hint_text, (10, 10))
+                
+                # 跳过所有其他UI元素的渲染
+                current_y = -1  # 标记为隐藏状态
             
-            screen.blit(score_shadow, (10 + shadow_offset, 40 + shadow_offset))
-            screen.blit(score_text, (10, 40))
+            # 只有在显示信息面板时才渲染其他UI元素
+            if self.show_info_panel and current_y != -1:
+                # 2. Boss进度条 - 紧跟在关卡信息后面
+                if not self.boss_spawned:
+                    boss_progress = min(1.0, self.round_score / self.score_for_boss)
+                    boss_text = f'Boss进度: {self.round_score}/{self.score_for_boss}'
+                    boss_shadow = main_font.render(boss_text, True, shadow_color)
+                    boss_text_surface = main_font.render(boss_text, True, (255, 150, 150))  # 浅红色
+                    
+                    screen.blit(boss_shadow, (10 + shadow_offset, current_y + shadow_offset))
+                    screen.blit(boss_text_surface, (10, current_y))
+                    current_y += 27  # 增加间距，避免重叠
+                    
+                    # 进度条 - 增加高度
+                    progress_bar_width = 180
+                    progress_bar_height = 10
+                    progress_x = 10
+                    progress_y = current_y
+                    
+                    # 背景
+                    pygame.draw.rect(screen, (60, 60, 60), 
+                                   (progress_x, progress_y, progress_bar_width, progress_bar_height))
+                    # 进度
+                    progress_width = int(progress_bar_width * boss_progress)
+                    if boss_progress < 0.6:
+                        color = (100, 255, 100)  # 绿色
+                    elif boss_progress < 0.8:
+                        color = (255, 255, 100)  # 黄色
+                    else:
+                        color = (255, 100, 100)  # 红色
+                    pygame.draw.rect(screen, color, 
+                                   (progress_x, progress_y, progress_width, progress_bar_height))
+                    # 边框
+                    pygame.draw.rect(screen, (200, 200, 200), 
+                                   (progress_x, progress_y, progress_bar_width, progress_bar_height), 1)
+                    
+                    current_y += 25  # 增加间距，为下一个元素留出空间
+                else:
+                    boss_shadow = main_font.render('🔥 Boss已出现！', True, shadow_color)
+                    boss_text_surface = main_font.render('🔥 Boss已出现！', True, (255, 80, 80))  # 深红色
+                    
+                    screen.blit(boss_shadow, (10 + shadow_offset, current_y + shadow_offset))
+                    screen.blit(boss_text_surface, (10, current_y))
+                    current_y += 30
+                    
+                # 3. 总分显示
+                screen.blit(score_shadow, (10 + shadow_offset, current_y + shadow_offset))
+                screen.blit(score_text, (10, current_y))
+                current_y += 27  # 统一间距
+                
+                # 4. 当前关卡分数显示
+                screen.blit(round_score_shadow, (10 + shadow_offset, current_y + shadow_offset))
+                screen.blit(round_score_text, (10, current_y))
+                current_y += 27  # 统一间距
+                
+                # 5. 武器信息显示
+                weapon_y = current_y
+                
+                screen.blit(weapon_shadow, (10 + shadow_offset, weapon_y + shadow_offset))
+                screen.blit(weapon_text, (10, weapon_y))
             
-            screen.blit(weapon_shadow, (10 + shadow_offset, 70 + shadow_offset))
-            screen.blit(weapon_text, (10, 70))
-            
-            # 编队信息显示
-            formation_names = {1: '单机', 2: '双机', 3: '三机'}
-            formation_name = formation_names.get(self.formation_type, '未知')
-            formation_shadow = self.font.render(f'编队：{formation_name} (1/2/3键切换)', True, shadow_color)
-            formation_text = self.font.render(f'编队：{formation_name} (1/2/3键切换)', True, (255, 255, 255))
-            
-            screen.blit(formation_shadow, (10 + shadow_offset, 100 + shadow_offset))
-            screen.blit(formation_text, (10, 100))
-            
-            # 射击提示
-            shoot_shadow = self.font.render('空格键: 发射子弹', True, shadow_color)
-            shoot_text = self.font.render('空格键: 发射子弹', True, (255, 255, 255))
-            
-            screen.blit(shoot_shadow, (10 + shadow_offset, 130 + shadow_offset))
-            screen.blit(shoot_text, (10, 130))
+                # 6. 编队信息显示
+                formation_names = {1: '单机', 2: '双机', 3: '三机'}
+                formation_name = formation_names.get(self.formation_type, '未知')
+                formation_shadow = small_font.render(f'编队: {formation_name} (1/2/3键)', True, shadow_color)
+                formation_text = small_font.render(f'编队: {formation_name} (1/2/3键)', True, (200, 200, 200))
+                
+                formation_y = weapon_y + 27  # 统一间距
+                screen.blit(formation_shadow, (10 + shadow_offset, formation_y + shadow_offset))
+                screen.blit(formation_text, (10, formation_y))
+                
+                # 7. 射击提示
+                shoot_shadow = small_font.render('空格键: 发射子弹', True, shadow_color)
+                shoot_text = small_font.render('空格键: 发射子弹', True, (200, 200, 200))
+                
+                shoot_y = formation_y + 23  # 小字体间距稍小
+                screen.blit(shoot_shadow, (10 + shadow_offset, shoot_y + shadow_offset))
+                screen.blit(shoot_text, (10, shoot_y))
+                
+                # 8. 隐藏面板提示
+                hide_shadow = small_font.render('按 i 隐藏信息面板', True, shadow_color)
+                hide_text = small_font.render('按 i 隐藏信息面板', True, (150, 150, 150))  # 更浅的灰色
+                
+                hide_y = shoot_y + 23  # 小字体间距稍小
+                screen.blit(hide_shadow, (10 + shadow_offset, hide_y + shadow_offset))
+                screen.blit(hide_text, (10, hide_y))
             
             # UI elements are now positioned in the render code above
             
