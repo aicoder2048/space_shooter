@@ -28,16 +28,16 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uv sync
 ```
 
-### 使用 pip
+### 手动添加依赖
+
+如果需要添加新的依赖包，使用：
 
 ```bash
-# 创建虚拟环境
-python -m venv venv
-source venv/bin/activate  # macOS/Linux
-# 或者在 Windows 上: venv\Scripts\activate
+# 添加新依赖
+uv add package_name
 
-# 安装依赖
-pip install -e .
+# 例如添加新的游戏库
+uv add pygame-gui
 ```
 
 ## 运行游戏
