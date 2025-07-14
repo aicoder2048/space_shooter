@@ -54,7 +54,8 @@ class ResourceLoader:
             'machine_gun': 'machine_gun.mp3',
             'laser': 'laser.mp3',
             'cannon': 'cannon.mp3',
-            'missile': 'missle.mp3'  # 注意这里的拼写
+            'shotgun': 'missle.mp3',  # 散弹使用原来的missile音效
+            'missile': 'missle.mp3'   # 导弹也使用相同音效
         }
         for weapon, filename in weapon_sounds.items():
             self.load_sound(weapon, filename)
@@ -622,7 +623,18 @@ class Game:
                 pygame.draw.circle(game_surface, WHITE, (int(x), int(y)), 1)
             
             # Draw game objects on the game surface
-            self.all_sprites.draw(game_surface)
+            # 先绘制非子弹对象
+            for sprite in self.all_sprites:
+                if not hasattr(sprite, 'weapon_type'):  # 非子弹对象
+                    game_surface.blit(sprite.image, sprite.rect)
+            
+            # 然后绘制子弹（使用自定义draw方法显示轨迹）
+            for ship in self.player_ships:
+                for bullet in ship.bullets:
+                    if hasattr(bullet, 'draw'):
+                        bullet.draw(game_surface)
+                    else:
+                        game_surface.blit(bullet.image, bullet.rect)
             
             # Apply the shake offset when blitting to the screen
             screen.blit(game_surface, shake_offset)
@@ -633,9 +645,10 @@ class Game:
             shadow_color = (50, 50, 50)
             shadow_offset = 2
             
-            # 关卡显示
-            round_shadow = self.font.render(f'第 {self.current_round} 关', True, shadow_color)
-            round_text = self.font.render(f'第 {self.current_round} 关', True, (255, 215, 0))  # 金色
+            # 关卡显示 - 添加剩余敌人数量
+            enemies_left = len(self.enemies)
+            round_shadow = self.font.render(f'第 {self.current_round} 关 (剩余敌人: {enemies_left})', True, shadow_color)
+            round_text = self.font.render(f'第 {self.current_round} 关 (剩余敌人: {enemies_left})', True, (255, 215, 0))  # 金色
             
             # 得分显示
             score_shadow = self.font.render(f'得分：{self.score}', True, shadow_color)
@@ -646,6 +659,7 @@ class Game:
                 'machine_gun': ('机枪', (255, 165, 0)),    # 橙色
                 'laser': ('激光', (0, 255, 255)),         # 青色
                 'cannon': ('炮弹', (255, 69, 0)),         # 红橙色
+                'shotgun': ('散弹', (255, 50, 50)),       # 红色
                 'missile': ('导弹', (50, 205, 50)),        # 绿色
                 'beam': ('光束', (255, 0, 255))           # 紫色
             }
@@ -653,8 +667,8 @@ class Game:
                 self.player_ships[0].current_weapon, 
                 (self.player_ships[0].current_weapon, WHITE)
             )
-            weapon_shadow = self.font.render(f'武器：{weapon_name}', True, shadow_color)
-            weapon_text = self.font.render(f'武器：{weapon_name}', True, weapon_color)
+            weapon_shadow = self.font.render(f'武器：{weapon_name} (TAB切换武器)', True, shadow_color)
+            weapon_text = self.font.render(f'武器：{weapon_name} (TAB切换武器)', True, weapon_color)
             
             # 绘制带阴影的文本
             screen.blit(round_shadow, (10 + shadow_offset, 10 + shadow_offset))
@@ -665,6 +679,22 @@ class Game:
             
             screen.blit(weapon_shadow, (10 + shadow_offset, 70 + shadow_offset))
             screen.blit(weapon_text, (10, 70))
+            
+            # 编队信息显示
+            formation_names = {1: '单机', 2: '双机', 3: '三机'}
+            formation_name = formation_names.get(self.formation_type, '未知')
+            formation_shadow = self.font.render(f'编队：{formation_name} (1/2/3键切换)', True, shadow_color)
+            formation_text = self.font.render(f'编队：{formation_name} (1/2/3键切换)', True, (255, 255, 255))
+            
+            screen.blit(formation_shadow, (10 + shadow_offset, 100 + shadow_offset))
+            screen.blit(formation_text, (10, 100))
+            
+            # 射击提示
+            shoot_shadow = self.font.render('空格键: 发射子弹', True, shadow_color)
+            shoot_text = self.font.render('空格键: 发射子弹', True, (255, 255, 255))
+            
+            screen.blit(shoot_shadow, (10 + shadow_offset, 130 + shadow_offset))
+            screen.blit(shoot_text, (10, 130))
             
             # UI elements are now positioned in the render code above
             
@@ -875,9 +905,10 @@ class Game:
             wing_ship2.rect.bottom = main_ship.rect.bottom
             self.player_ships.append(wing_ship2)
         
-        # Add all ships to sprite groups
+        # Add all ships to sprite groups and set enemies list
         for ship in self.player_ships:
             self.all_sprites.add(ship)
+            ship.enemies = self.enemies  # 为导弹追踪设置敌人列表
             
         cprint(f"Formation updated: {len(self.player_ships)} ships", "cyan")
 

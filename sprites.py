@@ -120,8 +120,10 @@ class Weapon:
                 self.sound = generate_sound(1000, 0.1, 0.3)
             elif bullet_type == 'laser':
                 self.sound = generate_sound(2000, 0.1, 0.3)
-            else:  # missile
+            elif bullet_type == 'shotgun':
                 self.sound = generate_sound(500, 0.2, 0.4)
+            else:  # missile
+                self.sound = generate_sound(300, 0.3, 0.5)
         except:
             self.sound = None
             cprint(f"Could not generate sound for {bullet_type}", "red")
@@ -172,9 +174,9 @@ class Bullet(pygame.sprite.Sprite):
             self.speed_x = 0
             self.damage = 40
             
-        else:  # missile，分散型导弹
+        elif weapon_type == 'shotgun':  # 散弹
             self.image = pygame.Surface((8, 20), pygame.SRCALPHA)
-            # 导弹主体
+            # 散弹主体
             pygame.draw.polygon(self.image, (255, 50, 50), 
                               [(4, 0), (0, 20), (8, 20)])
             # 发光效果
@@ -183,6 +185,33 @@ class Bullet(pygame.sprite.Sprite):
             self.speed_y = -7
             self.speed_x = math.sin(math.radians(angle)) * 3
             self.damage = 25
+        
+        else:  # missile，追踪导弹
+            self.image = pygame.Surface((10, 25), pygame.SRCALPHA)
+            # 导弹主体（更大）
+            pygame.draw.polygon(self.image, (255, 0, 0), 
+                              [(5, 0), (0, 25), (10, 25)])
+            # 发光效果
+            pygame.draw.polygon(self.image, (255, 150, 150),
+                              [(5, 5), (3, 20), (7, 20)])
+            # 尾焰效果
+            pygame.draw.polygon(self.image, (255, 255, 0),
+                              [(5, 20), (2, 25), (8, 25)])
+            self.speed_y = -8
+            self.speed_x = 0
+            self.damage = 30
+            self.target = None  # 追踪目标
+            self.turn_speed = 0.15  # 转向速度
+            self.max_speed = 12  # 最大速度
+            self.acceleration = 0.3  # 加速度
+            self.current_speed = 8  # 当前速度
+            # 曲线飞行参数
+            self.curve_factor = 0.8  # 曲线因子
+            self.angle = 0  # 当前角度
+            self.trail_positions = []  # 轨迹位置记录
+            # 确保target属性存在
+            if not hasattr(self, 'target'):
+                self.target = None
             
         self.rect = self.image.get_rect()
         self.rect.centerx = x
@@ -197,6 +226,65 @@ class Bullet(pygame.sprite.Sprite):
         self.particle_delay = 50  # 每50ms添加一个粒子
 
     def update(self):
+        # 追踪导弹逻辑
+        if self.weapon_type == 'missile' and hasattr(self, 'target'):
+            # 如果目标不存在或已死亡，寻找新目标
+            if self.target is None or not self.target.alive():
+                if hasattr(self, 'enemies') and self.enemies:
+                    # 寻找最近的敌人作为新目标
+                    closest_enemy = None
+                    closest_distance = float('inf')
+                    for enemy in self.enemies:
+                        if enemy.alive():
+                            distance = math.sqrt((enemy.rect.centerx - self.rect.centerx)**2 + 
+                                               (enemy.rect.centery - self.rect.centery)**2)
+                            if distance < closest_distance:
+                                closest_distance = distance
+                                closest_enemy = enemy
+                    self.target = closest_enemy
+            
+            # 如果有目标，曲线飞行追踪
+            if self.target and self.target.alive():
+                target_x = self.target.rect.centerx
+                target_y = self.target.rect.centery
+                
+                # 计算到目标的方向
+                dx = target_x - self.rect.centerx
+                dy = target_y - self.rect.centery
+                distance = math.sqrt(dx**2 + dy**2)
+                
+                if distance > 0:
+                    # 计算目标角度
+                    target_angle = math.atan2(dy, dx)
+                    
+                    # 当前运动角度
+                    current_angle = math.atan2(self.speed_y, self.speed_x)
+                    
+                    # 计算角度差
+                    angle_diff = target_angle - current_angle
+                    
+                    # 处理角度差，确保选择最短路径
+                    if angle_diff > math.pi:
+                        angle_diff -= 2 * math.pi
+                    elif angle_diff < -math.pi:
+                        angle_diff += 2 * math.pi
+                    
+                    # 逐渐调整角度（曲线效果）
+                    self.angle = current_angle + angle_diff * self.turn_speed * self.curve_factor
+                    
+                    # 根据距离调整速度
+                    if distance < 100:  # 接近目标时加速
+                        self.current_speed = min(self.current_speed + self.acceleration, self.max_speed)
+                    
+                    # 更新速度分量
+                    self.speed_x = math.cos(self.angle) * self.current_speed
+                    self.speed_y = math.sin(self.angle) * self.current_speed
+                    
+                    # 记录轨迹位置（用于绘制轨迹）
+                    self.trail_positions.append((self.rect.centerx, self.rect.centery))
+                    if len(self.trail_positions) > 8:  # 保留最近8个位置
+                        self.trail_positions.pop(0)
+        
         self.x += self.speed_x
         self.y += self.speed_y
         self.rect.x = self.x
@@ -211,8 +299,10 @@ class Bullet(pygame.sprite.Sprite):
                 color = (100, 255, 255)
             elif self.weapon_type == 'cannon':
                 color = (255, 150, 50)
-            else:  # missile
+            elif self.weapon_type == 'shotgun':
                 color = (255, 100, 100)
+            else:  # missile
+                color = (255, 0, 0)
                 
             particle = Particle(self.rect.centerx, self.rect.bottom,
                               color, random.uniform(-0.5, 0.5), 
@@ -225,6 +315,27 @@ class Bullet(pygame.sprite.Sprite):
         for particle in self.particles.copy():
             if not particle.alive():
                 particle.kill()
+    
+    def draw(self, screen):
+        """绘制子弹和导弹轨迹"""
+        # 绘制导弹轨迹
+        if self.weapon_type == 'missile' and hasattr(self, 'trail_positions') and len(self.trail_positions) > 1:
+            # 绘制轨迹线
+            for i in range(1, len(self.trail_positions)):
+                start_pos = self.trail_positions[i-1]
+                end_pos = self.trail_positions[i]
+                # 轨迹颜色渐变
+                alpha = int(255 * (i / len(self.trail_positions)))
+                color = (255, 100, 100)
+                
+                # 绘制轨迹线
+                pygame.draw.line(screen, color, start_pos, end_pos, 2)
+        
+        # 绘制子弹本体
+        screen.blit(self.image, self.rect)
+        
+        # 绘制粒子效果
+        self.particles.draw(screen)
 
 class Player(pygame.sprite.Sprite):
     SHIP_DESIGNS = {
@@ -340,7 +451,8 @@ class Player(pygame.sprite.Sprite):
             'laser': Weapon(15, -20, 200, 'laser'),    # 激光，穿透
             'cannon': Weapon(40, -8, 500, 'cannon'),   # 炮弹，大伤害
             'beam': Weapon(12, -25, 50, 'beam'),  # 连续激光线，快速射击
-            'missile': Weapon(25, -10, 400, 'missile') # 导弹，分散
+            'shotgun': Weapon(25, -10, 400, 'shotgun'), # 散弹，分散
+            'missile': Weapon(30, -15, 600, 'missile') # 导弹，追踪
         }
         self.current_weapon = 'machine_gun'
         self.last_shot = pygame.time.get_ticks()
@@ -470,10 +582,32 @@ class Player(pygame.sprite.Sprite):
                 bullet2 = Bullet(self.rect.centerx + 10, self.rect.top, self.current_weapon, 5)
                 self.bullets.add(bullet1, bullet2)
                 
-            elif self.current_weapon == 'missile':  # 分散型导弹
+            elif self.current_weapon == 'shotgun':  # 散弹
                 angles = [-30, -15, 0, 15, 30]
                 for angle in angles:
                     bullet = Bullet(self.rect.centerx, self.rect.top, self.current_weapon, angle)
+                    self.bullets.add(bullet)
+            
+            elif self.current_weapon == 'missile':  # 追踪导弹
+                # 获取最多6个不同的敌人作为目标
+                targets = []
+                if hasattr(self, 'enemies') and self.enemies:
+                    enemies_list = list(self.enemies)
+                    # 按距离排序，优先攻击近距离敌人
+                    enemies_list.sort(key=lambda e: math.sqrt((e.rect.centerx - self.rect.centerx)**2 + 
+                                                            (e.rect.centery - self.rect.centery)**2))
+                    targets = enemies_list[:6]  # 取前6个敌人
+                
+                for i in range(6):  # 发出6个导弹
+                    bullet = Bullet(self.rect.centerx + (i-2.5)*8, self.rect.top, self.current_weapon, 0)
+                    # 为每个导弹分配不同的目标
+                    if i < len(targets):
+                        bullet.target = targets[i]
+                    else:
+                        bullet.target = None
+                    # 设置敌人列表用于重新寻找目标
+                    if hasattr(self, 'enemies'):
+                        bullet.enemies = self.enemies
                     self.bullets.add(bullet)
             
             elif self.current_weapon == 'beam':  # 连续激光线
@@ -495,7 +629,8 @@ class Player(pygame.sprite.Sprite):
                 color = (255, 255, 0) if self.current_weapon == 'machine_gun' else \
                         (0, 255, 255) if self.current_weapon == 'laser' else \
                         (255, 100, 0) if self.current_weapon == 'cannon' else \
-                        (255, 50, 50) if self.current_weapon == 'missile' else \
+                        (255, 50, 50) if self.current_weapon == 'shotgun' else \
+                        (255, 0, 0) if self.current_weapon == 'missile' else \
                         (255, 0, 255)  # beam
                 particle = Particle(self.rect.centerx, self.rect.top, color, speed_x, speed_y)
                 self.particles.add(particle)
