@@ -733,41 +733,67 @@ class Game:
             
             # 信息面板切换功能
             if self.show_info_panel:
-                # 完整信息面板
-                current_y = 10
+                # 计算面板尺寸 (增加宽度容纳更多汉字)
+                panel_width = 320  # 从280增加到320，容纳2个汉字
+                panel_padding = 8
                 
-                # 1. 关卡显示
-                screen.blit(round_shadow, (10 + shadow_offset, current_y + shadow_offset))
-                screen.blit(round_text, (10, current_y))
-                current_y += 30  # 减少间距，保持一致
-            else:
-                # 隐藏状态，只显示提示
-                hint_shadow = small_font.render('按 i 打开信息面板', True, shadow_color)
-                hint_text = small_font.render('按 i 打开信息面板', True, (200, 200, 200))
+                # 模拟渲染获取内容高度
+                content_height = 0
+                line_height = 25
+                section_gap = 8
+                title_height = 22  # 模块标题高度
                 
-                screen.blit(hint_shadow, (10 + shadow_offset, 10 + shadow_offset))
-                screen.blit(hint_text, (10, 10))
+                # 模块1：关卡状态 (标题 + 4行内容 + 进度条 + 间距)
+                content_height += title_height + line_height * 4 + 18 + section_gap  # 18=进度条区域高度
                 
-                # 跳过所有其他UI元素的渲染
-                current_y = -1  # 标记为隐藏状态
-            
-            # 只有在显示信息面板时才渲染其他UI元素
-            if self.show_info_panel and current_y != -1:
-                # 2. Boss进度条 - 紧跟在关卡信息后面
+                # 模块2：装备配置 (标题 + 2行内容 + 间距)
+                content_height += title_height + line_height * 2 + section_gap
+                
+                # 模块3：操作指引 (标题 + 7行内容)
+                content_height += title_height + line_height * 7
+                
+                # 额外间距
+                content_height += section_gap * 2  # 顶部和底部间距
+                
+                panel_height = content_height + panel_padding * 2
+                
+                # 绘制半透明背景面板
+                panel_surface = pygame.Surface((panel_width, panel_height))
+                panel_surface.set_alpha(180)
+                panel_surface.fill((20, 25, 35))  # 深蓝灰色
+                
+                # 添加边框
+                pygame.draw.rect(panel_surface, (80, 90, 110), 
+                               (0, 0, panel_width, panel_height), 2)
+                
+                screen.blit(panel_surface, (5, 5))
+                
+                # 开始绘制内容
+                current_y = 5 + panel_padding
+                panel_x = 5 + panel_padding
+                
+                # === 模块1：关卡状态 ===
+                # 模块标题
+                section_title = small_font.render('■ 关卡状态', True, (255, 255, 100))  # 更亮的黄色
+                screen.blit(section_title, (panel_x, current_y))
+                current_y += 22
+                
+                # 关卡信息
+                round_text = small_font.render(f'关卡 {self.current_round}', True, (255, 215, 0))
+                screen.blit(round_text, (panel_x + 12, current_y))
+                current_y += line_height
+                
+                # Boss出现进度
                 if not self.boss_spawned:
                     boss_progress = min(1.0, self.round_score / self.score_for_boss)
-                    boss_text = f'Boss进度: {self.round_score}/{self.score_for_boss}'
-                    boss_shadow = main_font.render(boss_text, True, shadow_color)
-                    boss_text_surface = main_font.render(boss_text, True, (255, 150, 150))  # 浅红色
+                    boss_text = small_font.render(f'Boss出现进度：{self.round_score}/{self.score_for_boss}', True, (255, 150, 150))
+                    screen.blit(boss_text, (panel_x + 12, current_y))
+                    current_y += 20
                     
-                    screen.blit(boss_shadow, (10 + shadow_offset, current_y + shadow_offset))
-                    screen.blit(boss_text_surface, (10, current_y))
-                    current_y += 27  # 增加间距，避免重叠
-                    
-                    # 进度条 - 增加高度
-                    progress_bar_width = 180
-                    progress_bar_height = 10
-                    progress_x = 10
+                    # 进度条
+                    progress_bar_width = 160
+                    progress_bar_height = 8
+                    progress_x = panel_x + 12
                     progress_y = current_y
                     
                     # 背景
@@ -776,75 +802,87 @@ class Game:
                     # 进度
                     progress_width = int(progress_bar_width * boss_progress)
                     if boss_progress < 0.6:
-                        color = (100, 255, 100)  # 绿色
+                        color = (100, 255, 100)
                     elif boss_progress < 0.8:
-                        color = (255, 255, 100)  # 黄色
+                        color = (255, 255, 100)
                     else:
-                        color = (255, 100, 100)  # 红色
+                        color = (255, 100, 100)
                     pygame.draw.rect(screen, color, 
                                    (progress_x, progress_y, progress_width, progress_bar_height))
                     # 边框
-                    pygame.draw.rect(screen, (200, 200, 200), 
+                    pygame.draw.rect(screen, (150, 150, 150), 
                                    (progress_x, progress_y, progress_bar_width, progress_bar_height), 1)
-                    
-                    current_y += 25  # 增加间距，为下一个元素留出空间
+                    current_y += 18
                 else:
-                    boss_shadow = main_font.render('🔥 Boss已出现！', True, shadow_color)
-                    boss_text_surface = main_font.render('🔥 Boss已出现！', True, (255, 80, 80))  # 深红色
-                    
-                    screen.blit(boss_shadow, (10 + shadow_offset, current_y + shadow_offset))
-                    screen.blit(boss_text_surface, (10, current_y))
-                    current_y += 30
-                    
-                # 3. 总分显示
-                screen.blit(score_shadow, (10 + shadow_offset, current_y + shadow_offset))
-                screen.blit(score_text, (10, current_y))
-                current_y += 27  # 统一间距
+                    boss_text = small_font.render('🔥 Boss已出现！', True, (255, 80, 80))
+                    screen.blit(boss_text, (panel_x + 12, current_y))
+                    current_y += line_height
                 
-                # 4. 当前关卡分数显示
-                screen.blit(round_score_shadow, (10 + shadow_offset, current_y + shadow_offset))
-                screen.blit(round_score_text, (10, current_y))
-                current_y += 27  # 统一间距
+                # 全局积分
+                score_text = small_font.render(f'全局积分：{self.score}', True, (135, 206, 250))
+                screen.blit(score_text, (panel_x + 12, current_y))
+                current_y += line_height
                 
-                # 5. 武器信息显示
-                weapon_y = current_y
+                # 当前关卡积分
+                round_score_text = small_font.render(f'当前关卡积分：{self.round_score}', True, (144, 238, 144))
+                screen.blit(round_score_text, (panel_x + 12, current_y))
+                current_y += line_height + section_gap
                 
-                screen.blit(weapon_shadow, (10 + shadow_offset, weapon_y + shadow_offset))
-                screen.blit(weapon_text, (10, weapon_y))
-            
-                # 6. 编队信息显示
+                # 分隔线
+                pygame.draw.line(screen, (100, 100, 100), 
+                               (panel_x, current_y), (panel_x + panel_width - panel_padding*2, current_y), 1)
+                current_y += section_gap
+                
+                # === 模块2：装备配置 ===
+                section_title = small_font.render('◆ 装备配置', True, (255, 200, 100))  # 橙黄色
+                screen.blit(section_title, (panel_x, current_y))
+                current_y += 22
+                
+                # 当前武器
+                weapon_text = small_font.render(f'当前武器：{weapon_name} [TAB切换]', True, weapon_color)
+                screen.blit(weapon_text, (panel_x + 12, current_y))
+                current_y += line_height
+                
+                # 编队模式
                 formation_names = {1: '单机', 2: '双机', 3: '三机'}
                 formation_name = formation_names.get(self.formation_type, '未知')
-                formation_shadow = small_font.render(f'编队: {formation_name} (1/2/3键)', True, shadow_color)
-                formation_text = small_font.render(f'编队: {formation_name} (1/2/3键)', True, (200, 200, 200))
+                formation_text = small_font.render(f'编队模式：{formation_name} (1/2/3键切换)', True, (200, 200, 200))
+                screen.blit(formation_text, (panel_x + 12, current_y))
+                current_y += line_height + section_gap
                 
-                formation_y = weapon_y + 27  # 统一间距
-                screen.blit(formation_shadow, (10 + shadow_offset, formation_y + shadow_offset))
-                screen.blit(formation_text, (10, formation_y))
+                # 分隔线
+                pygame.draw.line(screen, (100, 100, 100), 
+                               (panel_x, current_y), (panel_x + panel_width - panel_padding*2, current_y), 1)
+                current_y += section_gap
                 
-                # 7. 射击提示
-                shoot_shadow = small_font.render('空格键: 发射子弹', True, shadow_color)
-                shoot_text = small_font.render('空格键: 发射子弹', True, (200, 200, 200))
+                # === 模块3：操作指引 ===
+                section_title = small_font.render('● 操作指引', True, (150, 200, 255))  # 浅蓝色
+                screen.blit(section_title, (panel_x, current_y))
+                current_y += 22
                 
-                shoot_y = formation_y + 23  # 小字体间距稍小
-                screen.blit(shoot_shadow, (10 + shadow_offset, shoot_y + shadow_offset))
-                screen.blit(shoot_text, (10, shoot_y))
+                # 操作提示列表
+                controls = [
+                    ('[← →] 移动飞船', (200, 200, 200)),
+                    ('[空格] 发射子弹', (200, 200, 200)),
+                    ('[TAB] 切换武器', (200, 200, 200)),
+                    ('[1/2/3] 切换编队', (200, 200, 200)),
+                    ('[ESC] 暂停游戏', (200, 200, 200)),
+                    ('[+/-] 调节音量', (180, 180, 180)),
+                    ('[i] 隐藏信息面板', (160, 160, 160))
+                ]
                 
-                # 8. 暂停游戏提示
-                pause_shadow = small_font.render('按 ESC 键暂停游戏', True, shadow_color)
-                pause_text = small_font.render('按 ESC 键暂停游戏', True, (200, 200, 200))
+                for control_text, color in controls:
+                    control_surface = small_font.render(control_text, True, color)
+                    screen.blit(control_surface, (panel_x + 12, current_y))
+                    current_y += line_height
+                    
+            else:
+                # 隐藏状态，只显示提示
+                hint_shadow = small_font.render('按 i 打开信息面板', True, shadow_color)
+                hint_text = small_font.render('按 i 打开信息面板', True, (200, 200, 200))
                 
-                pause_y = shoot_y + 23  # 小字体间距稍小
-                screen.blit(pause_shadow, (10 + shadow_offset, pause_y + shadow_offset))
-                screen.blit(pause_text, (10, pause_y))
-                
-                # 9. 隐藏面板提示
-                hide_shadow = small_font.render('按 i 隐藏信息面板', True, shadow_color)
-                hide_text = small_font.render('按 i 隐藏信息面板', True, (150, 150, 150))  # 更浅的灰色
-                
-                hide_y = pause_y + 23  # 小字体间距稍小
-                screen.blit(hide_shadow, (10 + shadow_offset, hide_y + shadow_offset))
-                screen.blit(hide_text, (10, hide_y))
+                screen.blit(hint_shadow, (10 + shadow_offset, 10 + shadow_offset))
+                screen.blit(hint_text, (10, 10))
             
             # UI elements are now positioned in the render code above
             
@@ -1026,6 +1064,11 @@ class Game:
 
     def update_formation(self, formation_type):
         """Update the player ship formation"""
+        # 保存当前武器状态
+        current_weapon = None
+        if self.player_ships:
+            current_weapon = self.player_ships[0].current_weapon
+            
         # Clear existing ships
         for ship in self.player_ships:
             ship.kill()
@@ -1039,6 +1082,11 @@ class Game:
         main_ship = Player(self.resource_loader, self.selected_ship)
         main_ship.rect.centerx = SCREEN_WIDTH // 2
         main_ship.rect.bottom = SCREEN_HEIGHT - 20
+        
+        # 恢复武器状态
+        if current_weapon:
+            main_ship.current_weapon = current_weapon
+            
         self.player_ships.append(main_ship)
         
         # Add additional ships based on formation type
@@ -1046,6 +1094,8 @@ class Game:
             wing_ship1 = Player(self.resource_loader, random.choice(available_ships))
             wing_ship1.rect.centerx = main_ship.rect.centerx - self.ship_spacing
             wing_ship1.rect.bottom = main_ship.rect.bottom
+            # 僚机使用与主机相同的武器
+            wing_ship1.current_weapon = main_ship.current_weapon
             self.player_ships.append(wing_ship1)
             
         if formation_type == 3:
@@ -1053,6 +1103,8 @@ class Game:
             wing_ship2 = Player(self.resource_loader, random.choice(remaining_ships))
             wing_ship2.rect.centerx = main_ship.rect.centerx + self.ship_spacing
             wing_ship2.rect.bottom = main_ship.rect.bottom
+            # 僚机使用与主机相同的武器
+            wing_ship2.current_weapon = main_ship.current_weapon
             self.player_ships.append(wing_ship2)
         
         # Add all ships to sprite groups and set enemies list
