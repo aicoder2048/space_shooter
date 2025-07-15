@@ -51,6 +51,9 @@ class ResourceLoader:
         self.menu_bgm_path = os.path.join(self.base_path, 'resources', 'sounds', 'menu_bgm.mp3')
         self.game_bgm_path = os.path.join(self.base_path, 'resources', 'sounds', 'game_bgm.mp3')
         
+        # 生成缺失的武器音效
+        self.generate_missing_sounds()
+        
         # 加载武器音效
         # 武器音效文件名映射
         weapon_sounds = {
@@ -58,10 +61,28 @@ class ResourceLoader:
             'laser': 'laser.mp3',
             'cannon': 'cannon.mp3',
             'shotgun': 'missle.mp3',  # 散弹使用原来的missile音效
-            'missile': 'missle.mp3'   # 导弹也使用相同音效
+            'missile': 'missile_unique.wav',  # 使用新生成的独特导弹音效
+            'beam': 'beam.wav'  # 新生成的光束音效
         }
         for weapon, filename in weapon_sounds.items():
             self.load_sound(weapon, filename)
+    
+    def generate_missing_sounds(self):
+        """生成缺失的武器音效"""
+        sounds_dir = os.path.join(self.base_path, 'resources', 'sounds')
+        beam_path = os.path.join(sounds_dir, 'beam.wav')
+        missile_path = os.path.join(sounds_dir, 'missile_unique.wav')
+        
+        # 检查音效文件是否存在，不存在则生成
+        if not os.path.exists(beam_path) or not os.path.exists(missile_path):
+            try:
+                from sound_generator import generate_weapon_sounds
+                print("检测到缺失音效文件，正在生成...")
+                generate_weapon_sounds()
+            except ImportError:
+                print("音效生成器不可用，使用默认音效")
+            except Exception as e:
+                print(f"生成音效时出错: {e}")
         
     def load_image(self, name, filename):
         """Load an image and store it in the images dictionary"""
@@ -883,16 +904,16 @@ class Game:
                 screen.blit(section_title, (panel_x, current_y))
                 current_y += 22
                 
-                # 操作提示列表
+                # 操作提示列表 - 使用彩色区分不同类型的操作
                 controls = [
-                    ('[← →] 移动飞船', (200, 200, 200)),
-                    ('[空格] 发射子弹', (200, 200, 200)),
-                    ('[TAB] 切换武器', (200, 200, 200)),
-                    ('[1/2/3] 切换编队', (200, 200, 200)),
-                    ('[ESC] 暂停游戏', (200, 200, 200)),
-                    ('[+/-] 调节音量', (180, 180, 180)),
-                    ('[D] 切换Debug信息', (180, 180, 180)),
-                    ('[i] 隐藏信息面板', (160, 160, 160))
+                    ('[← →] 移动飞船', (100, 255, 150)),    # 浅绿色 - 移动操作
+                    ('[空格] 发射子弹', (255, 200, 100)),   # 橙色 - 攻击操作
+                    ('[TAB] 切换武器', (255, 150, 200)),    # 粉色 - 武器操作
+                    ('[1/2/3] 切换编队', (200, 150, 255)), # 紫色 - 编队操作
+                    ('[ESC] 暂停游戏', (255, 255, 100)),    # 黄色 - 游戏控制
+                    ('[+/-] 调节音量', (150, 200, 255)),    # 浅蓝色 - 设置操作
+                    ('[D] 切换Debug信息', (255, 180, 120)), # 桃色 - Debug操作
+                    ('[i] 隐藏信息面板', (200, 200, 200))   # 灰色 - 界面操作
                 ]
                 
                 for control_text, color in controls:
