@@ -21,6 +21,9 @@ SCREEN_HEIGHT = 768
 FPS = 60
 INITIAL_LIVES = 5  # 初始生命数
 
+# Global debug state
+DEBUG_MODE = False  # 全局Debug模式，默认关闭
+
 # Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -110,7 +113,9 @@ class ResourceLoader:
         """Play weapon sound effect"""
         if weapon_type in self.sounds:
             self.sounds[weapon_type].play()
-            cprint(f"播放武器音效: {weapon_type}", "cyan")
+            global DEBUG_MODE
+            if DEBUG_MODE:
+                cprint(f"播放武器音效: {weapon_type}", "cyan")
 
 class ScreenShake:
     def __init__(self):
@@ -182,6 +187,12 @@ class Game:
         self.resource_loader.play_bgm('menu')
         
         self.init_game()
+    
+    def debug_print(self, message, color="white"):
+        """Debug信息输出控制"""
+        global DEBUG_MODE
+        if DEBUG_MODE:
+            cprint(message, color)
     
     def create_life_icon(self):
         """创建生命值图标"""
@@ -423,6 +434,10 @@ class Game:
                     elif event.key == pygame.K_i:
                         self.show_info_panel = not self.show_info_panel
                         cprint(f"信息面板{'显示' if self.show_info_panel else '隐藏'}", "cyan")
+                    elif event.key == pygame.K_d:
+                        global DEBUG_MODE
+                        DEBUG_MODE = not DEBUG_MODE
+                        cprint(f"Debug信息{'显示' if DEBUG_MODE else '隐藏'}", "cyan")
                     # Formation control with number keys
                     elif event.key in [pygame.K_1, pygame.K_2, pygame.K_3]:
                         formation_type = event.key - pygame.K_1 + 1
@@ -463,7 +478,7 @@ class Game:
         
         self.all_sprites.add(enemy)
         self.enemies.add(enemy)
-        cprint(f"Spawned a {enemy_type} enemy!", "red")
+        self.debug_print(f"Spawned a {enemy_type} enemy!", "red")
 
     def start_new_round(self):
         """Start a new round with increased difficulty"""
@@ -746,11 +761,11 @@ class Game:
                 # 模块1：关卡状态 (标题 + 4行内容 + 进度条 + 间距)
                 content_height += title_height + line_height * 4 + 18 + section_gap  # 18=进度条区域高度
                 
-                # 模块2：装备配置 (标题 + 2行内容 + 间距)
-                content_height += title_height + line_height * 2 + section_gap
+                # 模块2：装备配置 (标题 + 3行内容 + 间距)
+                content_height += title_height + line_height * 3 + section_gap
                 
-                # 模块3：操作指引 (标题 + 7行内容)
-                content_height += title_height + line_height * 7
+                # 模块3：操作指引 (标题 + 8行内容)
+                content_height += title_height + line_height * 8
                 
                 # 额外间距
                 content_height += section_gap * 2  # 顶部和底部间距
@@ -848,6 +863,14 @@ class Game:
                 formation_name = formation_names.get(self.formation_type, '未知')
                 formation_text = small_font.render(f'编队模式：{formation_name} (1/2/3键切换)', True, (200, 200, 200))
                 screen.blit(formation_text, (panel_x + 12, current_y))
+                current_y += line_height
+                
+                # Debug信息状态
+                global DEBUG_MODE
+                debug_status = '开启' if DEBUG_MODE else '关闭'
+                debug_color = (100, 255, 100) if DEBUG_MODE else (255, 100, 100)
+                debug_text = small_font.render(f'Debug信息：{debug_status} [D切换]', True, debug_color)
+                screen.blit(debug_text, (panel_x + 12, current_y))
                 current_y += line_height + section_gap
                 
                 # 分隔线
@@ -868,6 +891,7 @@ class Game:
                     ('[1/2/3] 切换编队', (200, 200, 200)),
                     ('[ESC] 暂停游戏', (200, 200, 200)),
                     ('[+/-] 调节音量', (180, 180, 180)),
+                    ('[D] 切换Debug信息', (180, 180, 180)),
                     ('[i] 隐藏信息面板', (160, 160, 160))
                 ]
                 
@@ -1133,18 +1157,31 @@ class Game:
             ship.health = ship.max_health
             ship.rect.centerx = SCREEN_WIDTH // 2
             ship.rect.bottom = SCREEN_HEIGHT - 20
+    
+    def respawn_player(self):
+        """重生玩家飞船"""
+        # 清除现有飞船
+        for ship in self.player_ships:
+            ship.kill()
+        self.player_ships.clear()
+        
+        # 重新创建编队
+        self.update_formation(self.formation_type)
+        
+        # 设置无敌状态
+        for ship in self.player_ships:
             ship.is_invulnerable = True
             ship.invulnerable_timer = pygame.time.get_ticks()
             
-            # 清除所有敌人和子弹
-            for enemy in self.enemies:
-                enemy.kill()
-            for enemy_bullet in [bullet for enemy in self.enemies for bullet in enemy.bullets]:
-                enemy_bullet.kill()
-            
-            # 重新生成敌人
-            for _ in range(4):
-                self.spawn_enemy()
+        # 清除所有敌人和子弹
+        for enemy in self.enemies:
+            enemy.kill()
+        for enemy_bullet in [bullet for enemy in self.enemies for bullet in enemy.bullets]:
+            enemy_bullet.kill()
+        
+        # 重新生成敌人
+        for _ in range(4):
+            self.spawn_enemy()
     
     def apply_power_up(self, ship, power_type):
         """Apply power-up effects to the ship"""
@@ -1189,7 +1226,7 @@ class Game:
                             power_up = PowerUp(enemy.rect.centerx, enemy.rect.centery, power_type)
                             self.power_ups.add(power_up)
                             self.all_sprites.add(power_up)
-                            cprint(f"生成了 {power_type} 道具!", "cyan")
+                            self.debug_print(f"生成了 {power_type} 道具!", "cyan")
                         
                         # 添加屏幕震动效果
                         shake_intensity = 10 if enemy.enemy_type == 'boss' else 5
@@ -1202,7 +1239,7 @@ class Game:
                             for player_ship in self.player_ships:
                                 player_ship.health = min(player_ship.max_health, 
                                                        player_ship.health + heal_amount)
-                            cprint(f"从红十字敌人获得了 {heal_amount} 点治疗!", "green")
+                            self.debug_print(f"从红十字敌人获得了 {heal_amount} 点治疗!", "green")
                             self.last_health_check = (self.player_ships[0].health / self.player_ships[0].max_health) * 100
                         else:
                             self.score += enemy.points
@@ -1223,7 +1260,7 @@ class Game:
                         enemy.kill()
                         if enemy.enemy_type not in ['boss', 'redcross']:
                             self.spawn_enemy()
-                        cprint(f"击毁了{enemy.enemy_type}敌人！得分：{enemy.points}", "yellow")
+                        self.debug_print(f"击毁了{enemy.enemy_type}敌人！得分：{enemy.points}", "yellow")
                     # 如果不是激光，子弹在命中后消失
                     if bullet.weapon_type != 'laser':
                         bullet.kill()
@@ -1274,14 +1311,14 @@ class Game:
                     
                     # 减少生命数
                     self.lives -= 1
-                    cprint(f"玩家飞船被摧毁！剩余生命：{self.lives}", "red")
+                    self.debug_print(f"玩家飞船被摧毁！剩余生命：{self.lives}", "red")
                     
                     # 如果还有生命，重生玩家
                     if self.lives > 0:
                         self.respawn_player()
                     else:
                         self.state = 'game_over'
-                        cprint("游戏结束！", "red")
+                        self.debug_print("游戏结束！", "red")
         
         # 检查玩家与道具的碰撞
         for ship in self.player_ships:

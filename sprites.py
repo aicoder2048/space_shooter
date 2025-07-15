@@ -5,6 +5,18 @@ from array import array
 from math import sin, pi
 from termcolor import cprint
 
+# Global debug function
+def debug_print(message, color="white"):
+    """Debug信息输出控制"""
+    # 从game模块导入DEBUG_MODE
+    try:
+        from game import DEBUG_MODE
+        if DEBUG_MODE:
+            cprint(message, color)
+    except ImportError:
+        # 如果导入失败，不输出debug信息
+        pass
+
 class Particle(pygame.sprite.Sprite):
     def __init__(self, x, y, color, speed_x, speed_y, size=3, gravity=0):
         super().__init__()
@@ -635,7 +647,7 @@ class Player(pygame.sprite.Sprite):
                 particle = Particle(self.rect.centerx, self.rect.top, color, speed_x, speed_y)
                 self.particles.add(particle)
             
-            cprint(f"Player fired a {self.current_weapon}!", "yellow")
+            debug_print(f"Player fired a {self.current_weapon}!", "yellow")
             
     def switch_weapon(self):
         weapons = list(self.weapons.keys())
@@ -1363,7 +1375,7 @@ class Enemy(pygame.sprite.Sprite):
             bullet = EnemyBullet(self.rect.centerx, self.rect.bottom, 0, 4, 
                                damage, color=(255, 0, 0), size=3)
             self.bullets.add(bullet)
-            cprint(f"Scout fired a laser! Damage: {damage}", "yellow")
+            debug_print(f"Scout fired a laser! Damage: {damage}", "yellow")
             
         elif bullet_type == 'dual_shot':
             # Two bullets side by side
@@ -1372,14 +1384,14 @@ class Enemy(pygame.sprite.Sprite):
             bullet2 = EnemyBullet(self.rect.centerx + 10, self.rect.bottom, 0.5, 4, 
                                 damage, color=(148, 0, 211), size=4)
             self.bullets.add(bullet1, bullet2)
-            cprint(f"Fighter fired dual shots! Damage: {damage}", "magenta")
+            debug_print(f"Fighter fired dual shots! Damage: {damage}", "magenta")
             
         elif bullet_type == 'plasma':
             # Large slow plasma ball
             bullet = EnemyBullet(self.rect.centerx, self.rect.bottom, 0, 3, 
                                damage, color=(0, 255, 0), size=8)
             self.bullets.add(bullet)
-            cprint(f"Bomber fired plasma! Damage: {damage}", "green")
+            debug_print(f"Bomber fired plasma! Damage: {damage}", "green")
             
         elif bullet_type == 'spread':
             # Three bullets in a spread pattern
@@ -1391,7 +1403,7 @@ class Enemy(pygame.sprite.Sprite):
                                    speed_x, speed_y, damage, 
                                    color=(0, 0, 255), size=5)
                 self.bullets.add(bullet)
-            cprint(f"Elite fired spread shot! Damage: {damage}", "blue")
+            debug_print(f"Elite fired spread shot! Damage: {damage}", "blue")
 
     def redraw_boss(self):
         """Redraw the boss with current colors"""
