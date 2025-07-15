@@ -1050,9 +1050,9 @@ class Game:
                             SCREEN_HEIGHT//2 + 40))
                 
         elif self.state == 'game_over':
-            game_over_text = self.font.render('GAME OVER', True, RED)
-            score_text = self.font.render(f'Final Score: {self.score}', True, WHITE)
-            continue_text = self.font.render('Press any key to continue', True, WHITE)
+            game_over_text = self.font.render('游戏结束', True, RED)
+            score_text = self.font.render(f'最终得分：{self.score}', True, WHITE)
+            continue_text = self.font.render('按任意键继续', True, WHITE)
             
             screen.blit(game_over_text, 
                        (SCREEN_WIDTH//2 - game_over_text.get_width()//2, 
