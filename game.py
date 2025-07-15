@@ -668,25 +668,32 @@ class Game:
                     self.all_sprites.remove(sprite)
             
             # 检查玩家与敌人的碰撞
-            for ship in self.player_ships:
+            for i, ship in enumerate(self.player_ships):
                 hits = pygame.sprite.spritecollide(ship, self.enemies, False,
                                                  pygame.sprite.collide_circle)
                 if hits:
-                    # 玩家与敌人相撞，立即死亡
-                    self.handle_player_death(ship)
-                    return
+                    if i == 0:  # 主船撞击，减少生命
+                        self.handle_player_death(ship)
+                        return
+                    else:  # 僚机撞击，只移除僚机
+                        self.handle_wingship_death(ship, i)
+                        break  # 处理完一个碰撞后退出循环
 
             # 检查敌人子弹与玩家的碰撞
             for enemy in self.enemies:
-                for ship in self.player_ships:
+                for i, ship in enumerate(self.player_ships):
                     hits = pygame.sprite.spritecollide(ship, enemy.bullets, True,
                                                      pygame.sprite.collide_circle)
                     for bullet in hits:
                         ship.take_damage(bullet.damage)
                         explosion = Explosion(bullet.rect.center, 10, self.particles)
                         if ship.health <= 0:
-                            self.handle_player_death(ship)
-                            return
+                            if i == 0:  # 主船死亡，减少生命
+                                self.handle_player_death(ship)
+                                return
+                            else:  # 僚机死亡，只移除僚机
+                                self.handle_wingship_death(ship, i)
+                                break  # 处理完一个死亡后退出内层循环
             
             # Spawn boss when round score reaches threshold
             if not self.boss_spawned and self.round_score >= self.score_for_boss:
@@ -1184,13 +1191,13 @@ class Game:
         cprint(f"Formation updated: {len(self.player_ships)} ships", "cyan")
 
     def handle_player_death(self, ship):
-        """处理玩家死亡"""
+        """处理主船死亡"""
         # 创建爆炸效果
         explosion = Explosion(ship.rect.center, 40, self.particles)
         
         # 减少生命数
         self.lives -= 1
-        cprint(f"玩家死亡！剩余生命：{self.lives}", "red")
+        cprint(f"主船死亡！剩余生命：{self.lives}", "red")
         
         if self.lives <= 0:
             # 没有生命了，游戏结束
@@ -1198,10 +1205,24 @@ class Game:
             self.state = 'game_over'
             self.resource_loader.play_bgm('menu')
         else:
-            # 还有生命，重置玩家位置和状态
-            ship.health = ship.max_health
-            ship.rect.centerx = SCREEN_WIDTH // 2
-            ship.rect.bottom = SCREEN_HEIGHT - 20
+            # 还有生命，重新生成整个编队
+            self.respawn_player()
+
+    def handle_wingship_death(self, ship, ship_index):
+        """处理僚机死亡 - 不减少生命值"""
+        # 创建爆炸效果
+        explosion = Explosion(ship.rect.center, 30, self.particles)
+        
+        # 从所有sprite组中移除僚机
+        ship.kill()
+        if ship in self.all_sprites:
+            self.all_sprites.remove(ship)
+        
+        # 从player_ships列表中移除僚机
+        if ship in self.player_ships:
+            self.player_ships.remove(ship)
+        
+        cprint(f"僚机{ship_index}被击毁！编队缩减为{len(self.player_ships)}艘飞船", "yellow")
     
     def respawn_player(self):
         """重生玩家飞船"""
