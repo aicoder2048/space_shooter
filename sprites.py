@@ -387,11 +387,11 @@ class Player(pygame.sprite.Sprite):
             'cockpit_color': (240, 128, 128)
         },
         'stealth': {
-            'color': (169, 169, 169),  # 灰色隐形舰
-            'wing_color': (211, 211, 211),
-            'engine_color': (128, 128, 128),
-            'core_color': (255, 255, 0),
-            'cockpit_color': (192, 192, 192)
+            'color': (75, 0, 130),     # 深紫色隐形舰
+            'wing_color': (138, 43, 226),  # 蓝紫色
+            'engine_color': (148, 0, 211),  # 暗紫色
+            'core_color': (0, 255, 255),   # 青色能量
+            'cockpit_color': (186, 85, 211) # 亮紫色
         }
     }
     
@@ -616,160 +616,155 @@ class Player(pygame.sprite.Sprite):
             debug_print(f"Player fired a {self.current_weapon}!", "yellow")
     
     def draw_cool_ship(self):
-        """绘制酷炫的飞船外形"""
+        """绘制现代风格的飞船外形"""
         colors = self.colors
         
         if self.ship_type == 'interceptor':
-            # 拦截机 - 尖锐的三角战斗机
-            # 主体 - 长锐三角形
-            pygame.draw.polygon(self.original_image, colors['color'], [
-                (32, 8),   # 尖锐的头部
-                (18, 45),  # 左侧
-                (28, 50),  # 左内侧
-                (32, 55),  # 底部中心
-                (36, 50),  # 右内侧
-                (46, 45)   # 右侧
-            ])
+            # 拦截机 - 现代流线型设计
+            # 主体 - 椭圆形机身
+            pygame.draw.ellipse(self.original_image, colors['color'], [20, 15, 24, 35])
             
-            # 侧翼武器舱
-            pygame.draw.polygon(self.original_image, colors['wing_color'], [
-                (15, 35), (22, 40), (25, 45), (18, 45)
-            ])
-            pygame.draw.polygon(self.original_image, colors['wing_color'], [
-                (49, 35), (42, 40), (39, 45), (46, 45)
-            ])
+            # 机身高光
+            pygame.draw.ellipse(self.original_image, colors['wing_color'], [22, 17, 20, 31])
             
-            # 驾驶舱
-            pygame.draw.ellipse(self.original_image, colors['cockpit_color'], [28, 20, 8, 12])
+            # 驾驶舱窗口
+            pygame.draw.ellipse(self.original_image, (20, 20, 40), [28, 22, 8, 12])
+            pygame.draw.ellipse(self.original_image, colors['cockpit_color'], [29, 23, 6, 10])
+            
+            # 侧翼
+            pygame.draw.ellipse(self.original_image, colors['wing_color'], [12, 28, 16, 8])
+            pygame.draw.ellipse(self.original_image, colors['wing_color'], [36, 28, 16, 8])
             
             # 推进器
-            pygame.draw.polygon(self.original_image, colors['engine_color'], [
-                (28, 50), (32, 62), (36, 50)
-            ])
-            pygame.draw.polygon(self.original_image, colors['core_color'], [
-                (30, 52), (32, 58), (34, 52)
-            ])
+            pygame.draw.ellipse(self.original_image, colors['engine_color'], [28, 45, 8, 12])
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [30, 47, 4, 8])
+            
+            # 机头
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [30, 12, 4, 8])
             
         elif self.ship_type == 'striker':
-            # 突击者 - 强壮的重型战舰
-            # 主体 - 宽厚的船体
-            pygame.draw.polygon(self.original_image, colors['color'], [
-                (32, 10), (20, 20), (16, 45), (24, 52), (40, 52), (48, 45), (44, 20)
-            ])
+            # 突击者 - 重型火箭式设计
+            # 主体 - 圆柱形机身
+            pygame.draw.ellipse(self.original_image, colors['color'], [24, 12, 16, 40])
             
-            # 装甲板
-            pygame.draw.polygon(self.original_image, colors['wing_color'], [
-                (20, 20), (25, 15), (39, 15), (44, 20), (40, 25), (24, 25)
-            ])
+            # 机身高光
+            pygame.draw.ellipse(self.original_image, colors['wing_color'], [26, 14, 12, 36])
             
-            # 双推进器
-            pygame.draw.polygon(self.original_image, colors['engine_color'], [
-                (22, 52), (26, 62), (30, 52)
-            ])
-            pygame.draw.polygon(self.original_image, colors['engine_color'], [
-                (34, 52), (38, 62), (42, 52)
-            ])
+            # 机头锥形
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [28, 8, 8, 12])
             
-            # 驾驶舱
-            pygame.draw.ellipse(self.original_image, colors['cockpit_color'], [26, 25, 12, 15])
+            # 驾驶舱窗口
+            pygame.draw.ellipse(self.original_image, (20, 20, 40), [28, 20, 8, 8])
+            pygame.draw.ellipse(self.original_image, colors['cockpit_color'], [29, 21, 6, 6])
+            
+            # 侧翼推进器
+            pygame.draw.ellipse(self.original_image, colors['wing_color'], [16, 35, 12, 6])
+            pygame.draw.ellipse(self.original_image, colors['wing_color'], [36, 35, 12, 6])
+            
+            # 主推进器
+            pygame.draw.ellipse(self.original_image, colors['engine_color'], [26, 48, 12, 10])
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [28, 50, 8, 6])
             
         elif self.ship_type == 'phantom':
-            # 幻影 - 神秘的隐形舰
-            # 主体 - 流线型隐形设计
-            pygame.draw.polygon(self.original_image, colors['color'], [
-                (32, 12), (25, 25), (20, 40), (28, 48), (36, 48), (44, 40), (39, 25)
-            ])
+            # 幻影 - 神秘圆盘型设计
+            # 主体 - 圆形机身
+            pygame.draw.ellipse(self.original_image, colors['color'], [18, 18, 28, 28])
             
-            # 隐形翼片
-            pygame.draw.polygon(self.original_image, colors['wing_color'], [
-                (18, 35), (12, 42), (20, 50), (28, 45)
-            ])
-            pygame.draw.polygon(self.original_image, colors['wing_color'], [
-                (46, 35), (52, 42), (44, 50), (36, 45)
-            ])
+            # 内层环
+            pygame.draw.ellipse(self.original_image, colors['wing_color'], [22, 22, 20, 20])
             
-            # 能量核心
-            pygame.draw.ellipse(self.original_image, colors['core_color'], [28, 30, 8, 8])
+            # 中央核心
+            pygame.draw.ellipse(self.original_image, (20, 20, 40), [28, 28, 8, 8])
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [29, 29, 6, 6])
             
-            # 推进器
-            pygame.draw.polygon(self.original_image, colors['engine_color'], [
-                (26, 48), (32, 58), (38, 48)
-            ])
+            # 方向指示器
+            pygame.draw.ellipse(self.original_image, colors['cockpit_color'], [30, 15, 4, 8])
+            
+            # 推进环
+            pygame.draw.ellipse(self.original_image, colors['engine_color'], [24, 46, 16, 8])
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [28, 48, 8, 4])
             
         elif self.ship_type == 'guardian':
-            # 守护者 - 厚重的护卫舰
-            # 主体 - 厚实的防护型设计
-            pygame.draw.polygon(self.original_image, colors['color'], [
-                (32, 15), (22, 25), (18, 40), (22, 50), (42, 50), (46, 40), (42, 25)
-            ])
+            # 守护者 - 厚重装甲型设计
+            # 主体 - 宽椭圆形
+            pygame.draw.ellipse(self.original_image, colors['color'], [16, 16, 32, 32])
             
-            # 护盾发生器
-            pygame.draw.ellipse(self.original_image, colors['wing_color'], [20, 30, 24, 12])
+            # 装甲层
+            pygame.draw.ellipse(self.original_image, colors['wing_color'], [18, 18, 28, 28])
             
-            # 防护装甲
-            pygame.draw.polygon(self.original_image, colors['cockpit_color'], [
-                (25, 20), (32, 10), (39, 20), (35, 25), (29, 25)
-            ])
+            # 中央装甲块
+            pygame.draw.ellipse(self.original_image, colors['color'], [24, 24, 16, 16])
             
-            # 三重推进器
-            pygame.draw.polygon(self.original_image, colors['engine_color'], [
-                (20, 50), (24, 60), (28, 50)
-            ])
-            pygame.draw.polygon(self.original_image, colors['engine_color'], [
-                (30, 50), (32, 62), (34, 50)
-            ])
-            pygame.draw.polygon(self.original_image, colors['engine_color'], [
-                (36, 50), (40, 60), (44, 50)
-            ])
+            # 驾驶舱
+            pygame.draw.ellipse(self.original_image, (20, 20, 40), [28, 26, 8, 8])
+            pygame.draw.ellipse(self.original_image, colors['cockpit_color'], [29, 27, 6, 6])
+            
+            # 前端武器
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [30, 12, 4, 8])
+            
+            # 多推进器设计
+            pygame.draw.ellipse(self.original_image, colors['engine_color'], [20, 44, 8, 6])
+            pygame.draw.ellipse(self.original_image, colors['engine_color'], [28, 46, 8, 8])
+            pygame.draw.ellipse(self.original_image, colors['engine_color'], [36, 44, 8, 6])
             
         elif self.ship_type == 'avenger':
-            # 复仇者 - 锋利的攻击型战机
-            # 主体 - X型战斗机
-            pygame.draw.polygon(self.original_image, colors['color'], [
-                (32, 8), (28, 20), (20, 35), (24, 45), (32, 52), (40, 45), (44, 35), (36, 20)
-            ])
+            # 复仇者 - 双引擎战斗机
+            # 主体机身
+            pygame.draw.ellipse(self.original_image, colors['color'], [26, 12, 12, 40])
             
-            # X型武器翼
-            pygame.draw.polygon(self.original_image, colors['wing_color'], [
-                (16, 30), (24, 22), (28, 28), (20, 36)
-            ])
-            pygame.draw.polygon(self.original_image, colors['wing_color'], [
-                (48, 30), (40, 22), (36, 28), (44, 36)
-            ])
+            # 机身高光
+            pygame.draw.ellipse(self.original_image, colors['wing_color'], [28, 14, 8, 36])
             
-            # 武器挂载点
-            pygame.draw.circle(self.original_image, colors['cockpit_color'], (20, 33), 3)
-            pygame.draw.circle(self.original_image, colors['cockpit_color'], (44, 33), 3)
+            # 侧面引擎舱
+            pygame.draw.ellipse(self.original_image, colors['wing_color'], [14, 20, 10, 24])
+            pygame.draw.ellipse(self.original_image, colors['wing_color'], [40, 20, 10, 24])
             
-            # 推进器
-            pygame.draw.polygon(self.original_image, colors['engine_color'], [
-                (28, 52), (32, 62), (36, 52)
-            ])
-            pygame.draw.polygon(self.original_image, colors['core_color'], [
-                (30, 54), (32, 58), (34, 54)
-            ])
+            # 引擎舱高光
+            pygame.draw.ellipse(self.original_image, colors['color'], [16, 22, 6, 20])
+            pygame.draw.ellipse(self.original_image, colors['color'], [42, 22, 6, 20])
+            
+            # 驾驶舱窗口
+            pygame.draw.ellipse(self.original_image, (20, 20, 40), [28, 18, 8, 10])
+            pygame.draw.ellipse(self.original_image, colors['cockpit_color'], [29, 19, 6, 8])
+            
+            # 机头
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [30, 8, 4, 8])
+            
+            # 双引擎推进器
+            pygame.draw.ellipse(self.original_image, colors['engine_color'], [16, 44, 6, 8])
+            pygame.draw.ellipse(self.original_image, colors['engine_color'], [42, 44, 6, 8])
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [18, 46, 2, 4])
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [44, 46, 2, 4])
             
         elif self.ship_type == 'stealth':
-            # 隐形舰 - 锯齿状隐形设计
-            # 主体 - 多角锯齿隐形外形
-            pygame.draw.polygon(self.original_image, colors['color'], [
-                (32, 10), (26, 18), (30, 25), (22, 35), (26, 42), (20, 48), 
-                (28, 50), (32, 55), (36, 50), (44, 48), (38, 42), (42, 35), 
-                (34, 25), (38, 18)
-            ])
+            # 隐形舰 - 未来科技隐形设计
+            # 主体 - 钻石形状
+            pygame.draw.ellipse(self.original_image, colors['color'], [20, 8, 24, 48])
             
-            # 隐形面板
-            pygame.draw.polygon(self.original_image, colors['wing_color'], [
-                (28, 20), (32, 15), (36, 20), (34, 30), (30, 30)
-            ])
+            # 能量护盾层
+            pygame.draw.ellipse(self.original_image, colors['wing_color'], [22, 10, 20, 44])
             
-            # 推进器
-            pygame.draw.polygon(self.original_image, colors['engine_color'], [
-                (26, 50), (32, 60), (38, 50)
-            ])
+            # 中央能量核心
+            pygame.draw.ellipse(self.original_image, colors['color'], [28, 16, 8, 32])
             
-            # 隐形核心
-            pygame.draw.ellipse(self.original_image, colors['core_color'], [29, 32, 6, 6])
+            # 量子传感器阵列
+            pygame.draw.ellipse(self.original_image, (10, 10, 50), [26, 18, 12, 8])
+            pygame.draw.ellipse(self.original_image, colors['cockpit_color'], [27, 19, 10, 6])
+            
+            # 能量脉冲器
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [30, 12, 4, 4])
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [30, 30, 4, 4])
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [30, 40, 4, 4])
+            
+            # 量子推进器
+            pygame.draw.ellipse(self.original_image, colors['engine_color'], [26, 48, 12, 8])
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [28, 50, 8, 4])
+            
+            # 侧翼能量发射器
+            pygame.draw.ellipse(self.original_image, colors['wing_color'], [16, 26, 8, 6])
+            pygame.draw.ellipse(self.original_image, colors['wing_color'], [40, 26, 8, 6])
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [18, 28, 4, 2])
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [42, 28, 4, 2])
             
     def switch_weapon(self):
         weapons = list(self.weapons.keys())
@@ -937,20 +932,20 @@ class Enemy(pygame.sprite.Sprite):
             'engine_color': (255, 140, 0),  # Dark orange engine
             'core_color': (255, 215, 0),  # Golden core
             'cockpit_color': (255, 165, 0),  # Orange cockpit
-            'size': (100, 100),
+            'size': (150, 120),  # Larger boss size
             'health': 2000,  # Base health
             'speed': 1,
             'points': 1000,
             'shoot_delay': 3000,  # Base shoot delay
-            'bullet_damage': 20,
-            'collision_damage': 50,
+            'bullet_damage': 35,  # More powerful bullets
+            'collision_damage': 80,  # Higher collision damage
             'phases': [
                 {
                     'name': '第一阶段: 火力压制',
                     'health_threshold': 0.8,  # 80% health
                     'color': (255, 50, 50),    # 红色
                     'attack_patterns': ['umbrella', 'spread'],
-                    'shoot_delay': 3000,
+                    'shoot_delay': 2500,  # Faster shooting
                     'speed_multiplier': 1.0
                 },
                 {
@@ -958,7 +953,7 @@ class Enemy(pygame.sprite.Sprite):
                     'health_threshold': 0.6,  # 60% health
                     'color': (0, 255, 255),    # 青色
                     'attack_patterns': ['laser_barrage', 'cross_fire'],
-                    'shoot_delay': 2500,
+                    'shoot_delay': 2000,  # Faster shooting
                     'speed_multiplier': 1.2
                 },
                 {
@@ -966,7 +961,7 @@ class Enemy(pygame.sprite.Sprite):
                     'health_threshold': 0.4,  # 40% health
                     'color': (255, 165, 0),    # 橙色
                     'attack_patterns': ['spiral', 'spread'],
-                    'shoot_delay': 2000,
+                    'shoot_delay': 1600,  # Faster shooting
                     'speed_multiplier': 1.4
                 },
                 {
@@ -974,7 +969,7 @@ class Enemy(pygame.sprite.Sprite):
                     'health_threshold': 0.2,  # 20% health
                     'color': (255, 0, 255),    # 紫色
                     'attack_patterns': ['death_spiral', 'cross_fire'],
-                    'shoot_delay': 1500,
+                    'shoot_delay': 1200,  # Faster shooting
                     'speed_multiplier': 1.6
                 },
                 {
@@ -982,7 +977,7 @@ class Enemy(pygame.sprite.Sprite):
                     'health_threshold': 0.0,  # 0% health
                     'color': (255, 255, 255),   # 白色
                     'attack_patterns': ['bullet_hell', 'umbrella'],
-                    'shoot_delay': 1000,
+                    'shoot_delay': 800,  # Much faster shooting
                     'speed_multiplier': 2.0
                 }
             ]
@@ -1528,7 +1523,7 @@ class Enemy(pygame.sprite.Sprite):
             debug_print(f"Elite fired spread shot! Damage: {damage}", "blue")
 
     def redraw_boss(self):
-        """Redraw the boss with current colors"""
+        """重绘星际航母Boss - 大型圆盘状母舰"""
         width, height = self.design['size']
         center_x = width // 2
         center_y = height // 2
@@ -1536,37 +1531,89 @@ class Enemy(pygame.sprite.Sprite):
         # 清空原始图像
         self.original_image = pygame.Surface(self.design['size'], pygame.SRCALPHA)
         
-        # Main body
-        pygame.draw.polygon(self.original_image, self.current_phase['color'], [
-            (center_x, 10),               # Top point
-            (center_x + 35, 30),          # Top right
-            (center_x + 40, center_y),    # Middle right
-            (center_x + 30, height - 20), # Lower right
-            (center_x, height - 10),      # Bottom
-            (center_x - 30, height - 20), # Lower left
-            (center_x - 40, center_y),    # Middle left
-            (center_x - 35, 30)           # Top left
-        ])
+        # 主体 - 大型圆盘状船体
+        main_radius = min(width, height) // 3
+        pygame.draw.ellipse(self.original_image, self.current_phase['color'], 
+                          [center_x - main_radius, center_y - main_radius//2, 
+                           main_radius*2, main_radius])
         
-        # Wings
-        wing_color = tuple(max(0, min(255, c + 50)) for c in self.current_phase['color'])
-        pygame.draw.polygon(self.original_image, wing_color, [
-            (center_x - 35, 30),          # Top left
-            (center_x - 45, 40),          # Outer left
-            (center_x - 40, center_y),    # Middle left
-            (center_x - 30, 25)           # Inner left
-        ])
-        pygame.draw.polygon(self.original_image, wing_color, [
-            (center_x + 35, 30),          # Top right
-            (center_x + 45, 40),          # Outer right
-            (center_x + 40, center_y),    # Middle right
-            (center_x + 30, 25)           # Inner right
-        ])
+        # 中央指挥塔
+        tower_radius = main_radius // 3
+        pygame.draw.ellipse(self.original_image, 
+                          tuple(max(0, min(255, c + 30)) for c in self.current_phase['color']),
+                          [center_x - tower_radius, center_y - tower_radius//2, 
+                           tower_radius*2, tower_radius])
         
-        # Core and effects
-        core_color = tuple(max(0, min(255, c + 100)) for c in self.current_phase['color'])
-        pygame.draw.circle(self.original_image, core_color, (center_x, center_y), 15)
-        pygame.draw.circle(self.original_image, (255, 255, 255), (center_x, center_y), 5)
+        # 外环装甲带
+        outer_ring = main_radius + 10
+        pygame.draw.ellipse(self.original_image, 
+                          tuple(max(0, min(255, c - 30)) for c in self.current_phase['color']),
+                          [center_x - outer_ring, center_y - outer_ring//2, 
+                           outer_ring*2, outer_ring], 8)
+        
+        # 舰载机发射舱 - 多个小圆形开口
+        hangar_color = (50, 50, 50)
+        for i in range(8):
+            angle = i * math.pi / 4
+            hangar_x = center_x + int(main_radius * 0.7 * math.cos(angle))
+            hangar_y = center_y + int(main_radius * 0.3 * math.sin(angle))
+            pygame.draw.circle(self.original_image, hangar_color, (hangar_x, hangar_y), 6)
+            pygame.draw.circle(self.original_image, (255, 150, 0), (hangar_x, hangar_y), 4)
+        
+        # 武器炮台 - 周围分布的炮塔
+        turret_color = tuple(max(0, min(255, c + 50)) for c in self.current_phase['color'])
+        for i in range(12):
+            angle = i * math.pi / 6
+            turret_x = center_x + int(main_radius * 0.9 * math.cos(angle))
+            turret_y = center_y + int(main_radius * 0.4 * math.sin(angle))
+            pygame.draw.ellipse(self.original_image, turret_color, 
+                              [turret_x-4, turret_y-3, 8, 6])
+            pygame.draw.ellipse(self.original_image, (255, 0, 0), 
+                              [turret_x-2, turret_y-1, 4, 2])
+        
+        # 主炮 - 中央大型武器
+        main_gun_color = tuple(max(0, min(255, c + 70)) for c in self.current_phase['color'])
+        pygame.draw.ellipse(self.original_image, main_gun_color,
+                          [center_x-15, center_y-8, 30, 16])
+        pygame.draw.ellipse(self.original_image, (255, 255, 100),
+                          [center_x-12, center_y-5, 24, 10])
+        
+        # 能量核心 - 脉动效果
+        pulse = abs(math.sin(pygame.time.get_ticks() * 0.01)) * 0.3 + 0.7
+        core_color = tuple(int(c * pulse) for c in (255, 255, 255))
+        pygame.draw.circle(self.original_image, core_color, (center_x, center_y), 8)
+        pygame.draw.circle(self.original_image, (0, 255, 255), (center_x, center_y), 5)
+        
+        # 推进器阵列 - 后方推进系统
+        thruster_color = (0, 150, 255)
+        for i in range(6):
+            thruster_x = center_x - main_radius + i * (main_radius // 3)
+            thruster_y = center_y + main_radius//2 - 5
+            pygame.draw.ellipse(self.original_image, thruster_color,
+                              [thruster_x, thruster_y, 8, 12])
+            pygame.draw.ellipse(self.original_image, (255, 255, 255),
+                              [thruster_x+2, thruster_y+2, 4, 8])
+        
+        # 护盾生成器 - 四个角落的设备
+        shield_color = (150, 255, 150)
+        shield_positions = [
+            (center_x - main_radius//2, center_y - main_radius//3),
+            (center_x + main_radius//2, center_y - main_radius//3),
+            (center_x - main_radius//2, center_y + main_radius//3),
+            (center_x + main_radius//2, center_y + main_radius//3)
+        ]
+        for shield_x, shield_y in shield_positions:
+            pygame.draw.ellipse(self.original_image, shield_color,
+                              [shield_x-6, shield_y-6, 12, 12])
+            pygame.draw.ellipse(self.original_image, (255, 255, 255),
+                              [shield_x-3, shield_y-3, 6, 6])
+        
+        # 相位指示灯 - 显示当前状态
+        phase_light_color = self.current_phase['color'] if self.current_phase else (255, 0, 0)
+        for i in range(4):
+            light_x = center_x - 20 + i * 13
+            light_y = center_y - tower_radius//2 - 10
+            pygame.draw.circle(self.original_image, phase_light_color, (light_x, light_y), 3)
         
         # 更新当前图像
         self.image = self.original_image.copy()

@@ -257,7 +257,7 @@ class Menu:
             'phantom': {'color': (147, 112, 219), 'wing_color': (230, 230, 250), 'engine_color': (186, 85, 211), 'core_color': (255, 255, 0), 'cockpit_color': (221, 160, 221)},
             'guardian': {'color': (255, 165, 0), 'wing_color': (255, 218, 185), 'engine_color': (255, 140, 0), 'core_color': (255, 255, 0), 'cockpit_color': (255, 222, 173)},
             'avenger': {'color': (220, 20, 60), 'wing_color': (250, 128, 114), 'engine_color': (255, 69, 0), 'core_color': (255, 255, 0), 'cockpit_color': (240, 128, 128)},
-            'stealth': {'color': (169, 169, 169), 'wing_color': (211, 211, 211), 'engine_color': (128, 128, 128), 'core_color': (255, 255, 0), 'cockpit_color': (192, 192, 192)}
+            'stealth': {'color': (75, 0, 130), 'wing_color': (138, 43, 226), 'engine_color': (148, 0, 211), 'core_color': (0, 255, 255), 'cockpit_color': (186, 85, 211)}
         }
         
         # Ship selection
@@ -296,26 +296,36 @@ class Menu:
             return (scaled_x, scaled_y)
         
         if ship_type == 'interceptor':
-            # 拦截机 - 尖锐的三角战斗机
-            main_body = [scale_point(32, 8), scale_point(18, 45), scale_point(28, 50), 
-                        scale_point(32, 55), scale_point(36, 50), scale_point(46, 45)]
-            pygame.draw.polygon(screen, colors['color'], main_body)
+            # 拦截机 - 现代流线型设计
+            # 主体 - 椭圆形机身
+            main_body = pygame.Rect(scale_point(20, 15)[0], scale_point(20, 15)[1], int(24*scale), int(35*scale))
+            pygame.draw.ellipse(screen, colors['color'], main_body)
             
-            # 侧翼武器舱
-            left_wing = [scale_point(15, 35), scale_point(22, 40), scale_point(25, 45), scale_point(18, 45)]
-            right_wing = [scale_point(49, 35), scale_point(42, 40), scale_point(39, 45), scale_point(46, 45)]
-            pygame.draw.polygon(screen, colors['wing_color'], left_wing)
-            pygame.draw.polygon(screen, colors['wing_color'], right_wing)
+            # 机身高光
+            highlight = pygame.Rect(scale_point(22, 17)[0], scale_point(22, 17)[1], int(20*scale), int(31*scale))
+            pygame.draw.ellipse(screen, colors['wing_color'], highlight)
             
-            # 驾驶舱
-            cockpit_rect = pygame.Rect(scale_point(28, 20)[0], scale_point(28, 20)[1], int(8*scale), int(12*scale))
-            pygame.draw.ellipse(screen, colors['cockpit_color'], cockpit_rect)
+            # 驾驶舱窗口
+            cockpit_bg = pygame.Rect(scale_point(28, 22)[0], scale_point(28, 22)[1], int(8*scale), int(12*scale))
+            cockpit = pygame.Rect(scale_point(29, 23)[0], scale_point(29, 23)[1], int(6*scale), int(10*scale))
+            pygame.draw.ellipse(screen, (20, 20, 40), cockpit_bg)
+            pygame.draw.ellipse(screen, colors['cockpit_color'], cockpit)
+            
+            # 侧翼
+            left_wing = pygame.Rect(scale_point(12, 28)[0], scale_point(12, 28)[1], int(16*scale), int(8*scale))
+            right_wing = pygame.Rect(scale_point(36, 28)[0], scale_point(36, 28)[1], int(16*scale), int(8*scale))
+            pygame.draw.ellipse(screen, colors['wing_color'], left_wing)
+            pygame.draw.ellipse(screen, colors['wing_color'], right_wing)
             
             # 推进器
-            thruster = [scale_point(28, 50), scale_point(32, 62), scale_point(36, 50)]
-            core = [scale_point(30, 52), scale_point(32, 58), scale_point(34, 52)]
-            pygame.draw.polygon(screen, colors['engine_color'], thruster)
-            pygame.draw.polygon(screen, colors['core_color'], core)
+            thruster = pygame.Rect(scale_point(28, 45)[0], scale_point(28, 45)[1], int(8*scale), int(12*scale))
+            core = pygame.Rect(scale_point(30, 47)[0], scale_point(30, 47)[1], int(4*scale), int(8*scale))
+            pygame.draw.ellipse(screen, colors['engine_color'], thruster)
+            pygame.draw.ellipse(screen, colors['core_color'], core)
+            
+            # 机头
+            nose = pygame.Rect(scale_point(30, 12)[0], scale_point(30, 12)[1], int(4*scale), int(8*scale))
+            pygame.draw.ellipse(screen, colors['core_color'], nose)
             
         elif ship_type == 'striker':
             # 突击者 - 强壮的重型战舰

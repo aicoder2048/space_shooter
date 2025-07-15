@@ -522,8 +522,20 @@ class Game:
             self.player_ships[2].rect.centerx = main_ship.rect.centerx + self.ship_spacing
             self.player_ships[2].rect.bottom = main_ship.rect.bottom
         
-        # Increase difficulty
-        self.score_for_boss = int(1000 * (self.round_multiplier ** (self.current_round - 1)))
+        # Increase difficulty - much more aggressive Boss spawn threshold
+        if self.current_round == 1:
+            self.score_for_boss = 1000
+        elif self.current_round == 2:
+            self.score_for_boss = 3000  # 3x harder than round 1
+        elif self.current_round == 3:
+            self.score_for_boss = 8000  # Much steeper increase
+        elif self.current_round == 4:
+            self.score_for_boss = 18000  # Exponential growth
+        elif self.current_round == 5:
+            self.score_for_boss = 35000  # Very challenging
+        else:
+            # For rounds 6+, use exponential formula with much higher base
+            self.score_for_boss = int(35000 * (2.5 ** (self.current_round - 5)))
         
         # Show round announcement
         self.showing_round_announcement = True
