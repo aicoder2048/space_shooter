@@ -912,8 +912,7 @@ class Game:
                     ('[1/2/3] 切换编队', (200, 150, 255)), # 紫色 - 编队操作
                     ('[ESC] 暂停游戏', (255, 255, 100)),    # 黄色 - 游戏控制
                     ('[+/-] 调节音量', (150, 200, 255)),    # 浅蓝色 - 设置操作
-                    ('[D] 切换Debug信息', (255, 180, 120)), # 桃色 - Debug操作
-                    ('[i] 隐藏信息面板', (200, 200, 200))   # 灰色 - 界面操作
+                    ('[D] 切换Debug信息', (255, 180, 120)) # 桃色 - Debug操作
                 ]
                 
                 for control_text, color in controls:
@@ -921,13 +920,7 @@ class Game:
                     screen.blit(control_surface, (panel_x + 12, current_y))
                     current_y += line_height
                     
-            else:
-                # 隐藏状态，只显示提示
-                hint_shadow = small_font.render('按 i 打开信息面板', True, shadow_color)
-                hint_text = small_font.render('按 i 打开信息面板', True, (200, 200, 200))
-                
-                screen.blit(hint_shadow, (10 + shadow_offset, 10 + shadow_offset))
-                screen.blit(hint_text, (10, 10))
+            # Info panel toggle hint has been moved to top-right corner
             
             # UI elements are now positioned in the render code above
             
@@ -983,6 +976,25 @@ class Game:
                     screen.blit(self.life_icon, (icon_x, start_y))
                 else:
                     screen.blit(self.life_icon_gray, (icon_x, start_y))
+            
+            # Draw info panel toggle hint below lives display
+            hint_y = icon_bg_y + icon_section_height + 8  # Position below lives icons
+            if self.show_info_panel:
+                hint_text = '按 i 键隐藏信息面板'
+                hint_color = (255, 150, 150)  # Light red
+            else:
+                hint_text = '按 i 键打开信息面板'
+                hint_color = (150, 255, 150)  # Light green
+            
+            # Create the hint text surface
+            hint_surface = small_font.render(hint_text, True, hint_color)
+            hint_width = hint_surface.get_width()
+            hint_x = SCREEN_WIDTH - hint_width - 10  # Align with right edge
+            
+            # Add subtle shadow for better readability
+            shadow_surface = small_font.render(hint_text, True, (0, 0, 0))
+            screen.blit(shadow_surface, (hint_x + 1, hint_y + 1))
+            screen.blit(hint_surface, (hint_x, hint_y))
             
             # Draw round announcement if active
             if self.showing_round_announcement:
