@@ -399,45 +399,11 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.ship_type = ship_type
         self.colors = self.SHIP_DESIGNS[ship_type]
-        # Create player ship surface
+        # Create player ship surface with higher resolution for pixel art
         self.original_image = pygame.Surface((64, 64), pygame.SRCALPHA)
         
-        # 飞船主体 - 流线型设计
-        pygame.draw.polygon(self.original_image, self.colors['color'], [
-            (32, 10),   # 飞船头部
-            (20, 54),   # 左下角
-            (44, 54)    # 右下角
-        ])
-        
-        # 驱动器翅膀
-        pygame.draw.polygon(self.original_image, self.colors['wing_color'], [
-            (20, 54),   # 左翅膀连接点
-            (10, 40),   # 左翅膀外点
-            (25, 54)    # 左翅膀内点
-        ])
-        pygame.draw.polygon(self.original_image, self.colors['wing_color'], [
-            (44, 54),   # 右翅膀连接点
-            (54, 40),   # 右翅膀外点
-            (39, 54)    # 右翅膀内点
-        ])
-        
-        # 驱动器光效
-        pygame.draw.polygon(self.original_image, self.colors['engine_color'], [
-            (25, 54),   # 左发光点
-            (32, 64),   # 中心发光点
-            (39, 54)    # 右发光点
-        ])
-        
-        # 驱动器内核
-        pygame.draw.polygon(self.original_image, self.colors['core_color'], [
-            (28, 54),
-            (32, 60),
-            (36, 54)
-        ])
-        
-        # 驱动舱室
-        pygame.draw.ellipse(self.original_image, self.colors['cockpit_color'], 
-                           [27, 25, 10, 15])
+        # 根据不同飞船类型绘制酷炫的飞船外形
+        self.draw_cool_ship()
         self.image = self.original_image
         self.rect = self.image.get_rect()
         self.resource_loader = resource_loader
@@ -648,6 +614,162 @@ class Player(pygame.sprite.Sprite):
                 self.particles.add(particle)
             
             debug_print(f"Player fired a {self.current_weapon}!", "yellow")
+    
+    def draw_cool_ship(self):
+        """绘制酷炫的飞船外形"""
+        colors = self.colors
+        
+        if self.ship_type == 'interceptor':
+            # 拦截机 - 尖锐的三角战斗机
+            # 主体 - 长锐三角形
+            pygame.draw.polygon(self.original_image, colors['color'], [
+                (32, 8),   # 尖锐的头部
+                (18, 45),  # 左侧
+                (28, 50),  # 左内侧
+                (32, 55),  # 底部中心
+                (36, 50),  # 右内侧
+                (46, 45)   # 右侧
+            ])
+            
+            # 侧翼武器舱
+            pygame.draw.polygon(self.original_image, colors['wing_color'], [
+                (15, 35), (22, 40), (25, 45), (18, 45)
+            ])
+            pygame.draw.polygon(self.original_image, colors['wing_color'], [
+                (49, 35), (42, 40), (39, 45), (46, 45)
+            ])
+            
+            # 驾驶舱
+            pygame.draw.ellipse(self.original_image, colors['cockpit_color'], [28, 20, 8, 12])
+            
+            # 推进器
+            pygame.draw.polygon(self.original_image, colors['engine_color'], [
+                (28, 50), (32, 62), (36, 50)
+            ])
+            pygame.draw.polygon(self.original_image, colors['core_color'], [
+                (30, 52), (32, 58), (34, 52)
+            ])
+            
+        elif self.ship_type == 'striker':
+            # 突击者 - 强壮的重型战舰
+            # 主体 - 宽厚的船体
+            pygame.draw.polygon(self.original_image, colors['color'], [
+                (32, 10), (20, 20), (16, 45), (24, 52), (40, 52), (48, 45), (44, 20)
+            ])
+            
+            # 装甲板
+            pygame.draw.polygon(self.original_image, colors['wing_color'], [
+                (20, 20), (25, 15), (39, 15), (44, 20), (40, 25), (24, 25)
+            ])
+            
+            # 双推进器
+            pygame.draw.polygon(self.original_image, colors['engine_color'], [
+                (22, 52), (26, 62), (30, 52)
+            ])
+            pygame.draw.polygon(self.original_image, colors['engine_color'], [
+                (34, 52), (38, 62), (42, 52)
+            ])
+            
+            # 驾驶舱
+            pygame.draw.ellipse(self.original_image, colors['cockpit_color'], [26, 25, 12, 15])
+            
+        elif self.ship_type == 'phantom':
+            # 幻影 - 神秘的隐形舰
+            # 主体 - 流线型隐形设计
+            pygame.draw.polygon(self.original_image, colors['color'], [
+                (32, 12), (25, 25), (20, 40), (28, 48), (36, 48), (44, 40), (39, 25)
+            ])
+            
+            # 隐形翼片
+            pygame.draw.polygon(self.original_image, colors['wing_color'], [
+                (18, 35), (12, 42), (20, 50), (28, 45)
+            ])
+            pygame.draw.polygon(self.original_image, colors['wing_color'], [
+                (46, 35), (52, 42), (44, 50), (36, 45)
+            ])
+            
+            # 能量核心
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [28, 30, 8, 8])
+            
+            # 推进器
+            pygame.draw.polygon(self.original_image, colors['engine_color'], [
+                (26, 48), (32, 58), (38, 48)
+            ])
+            
+        elif self.ship_type == 'guardian':
+            # 守护者 - 厚重的护卫舰
+            # 主体 - 厚实的防护型设计
+            pygame.draw.polygon(self.original_image, colors['color'], [
+                (32, 15), (22, 25), (18, 40), (22, 50), (42, 50), (46, 40), (42, 25)
+            ])
+            
+            # 护盾发生器
+            pygame.draw.ellipse(self.original_image, colors['wing_color'], [20, 30, 24, 12])
+            
+            # 防护装甲
+            pygame.draw.polygon(self.original_image, colors['cockpit_color'], [
+                (25, 20), (32, 10), (39, 20), (35, 25), (29, 25)
+            ])
+            
+            # 三重推进器
+            pygame.draw.polygon(self.original_image, colors['engine_color'], [
+                (20, 50), (24, 60), (28, 50)
+            ])
+            pygame.draw.polygon(self.original_image, colors['engine_color'], [
+                (30, 50), (32, 62), (34, 50)
+            ])
+            pygame.draw.polygon(self.original_image, colors['engine_color'], [
+                (36, 50), (40, 60), (44, 50)
+            ])
+            
+        elif self.ship_type == 'avenger':
+            # 复仇者 - 锋利的攻击型战机
+            # 主体 - X型战斗机
+            pygame.draw.polygon(self.original_image, colors['color'], [
+                (32, 8), (28, 20), (20, 35), (24, 45), (32, 52), (40, 45), (44, 35), (36, 20)
+            ])
+            
+            # X型武器翼
+            pygame.draw.polygon(self.original_image, colors['wing_color'], [
+                (16, 30), (24, 22), (28, 28), (20, 36)
+            ])
+            pygame.draw.polygon(self.original_image, colors['wing_color'], [
+                (48, 30), (40, 22), (36, 28), (44, 36)
+            ])
+            
+            # 武器挂载点
+            pygame.draw.circle(self.original_image, colors['cockpit_color'], (20, 33), 3)
+            pygame.draw.circle(self.original_image, colors['cockpit_color'], (44, 33), 3)
+            
+            # 推进器
+            pygame.draw.polygon(self.original_image, colors['engine_color'], [
+                (28, 52), (32, 62), (36, 52)
+            ])
+            pygame.draw.polygon(self.original_image, colors['core_color'], [
+                (30, 54), (32, 58), (34, 54)
+            ])
+            
+        elif self.ship_type == 'stealth':
+            # 隐形舰 - 锯齿状隐形设计
+            # 主体 - 多角锯齿隐形外形
+            pygame.draw.polygon(self.original_image, colors['color'], [
+                (32, 10), (26, 18), (30, 25), (22, 35), (26, 42), (20, 48), 
+                (28, 50), (32, 55), (36, 50), (44, 48), (38, 42), (42, 35), 
+                (34, 25), (38, 18)
+            ])
+            
+            # 隐形面板
+            pygame.draw.polygon(self.original_image, colors['wing_color'], [
+                (28, 20), (32, 15), (36, 20), (34, 30), (30, 30)
+            ])
+            
+            # 推进器
+            pygame.draw.polygon(self.original_image, colors['engine_color'], [
+                (26, 50), (32, 60), (38, 50)
+            ])
+            
+            # 隐形核心
+            pygame.draw.ellipse(self.original_image, colors['core_color'], [29, 32, 6, 6])
             
     def switch_weapon(self):
         weapons = list(self.weapons.keys())
