@@ -435,6 +435,11 @@ class Player(pygame.sprite.Sprite):
         self.current_weapon = 'machine_gun'
         self.last_shot = pygame.time.get_ticks()
         
+        # Beam weapon specific attributes
+        self.beam_active = False
+        self.beam_start_time = 0
+        self.beam_max_duration = 3000  # 3 seconds maximum
+        
         # Bullets and particles
         self.bullets = pygame.sprite.Group()
         self.particles = pygame.sprite.Group()
@@ -589,6 +594,16 @@ class Player(pygame.sprite.Sprite):
                     self.bullets.add(bullet)
             
             elif self.current_weapon == 'beam':  # 连续激光线
+                # Check if beam has been active for too long
+                if self.beam_active and (now - self.beam_start_time) >= self.beam_max_duration:
+                    self.beam_active = False
+                    return  # Stop firing beam
+                
+                # If this is the start of beam firing
+                if not self.beam_active:
+                    self.beam_active = True
+                    self.beam_start_time = now
+                
                 angles = [-5, 0, 5]
                 for angle in angles:
                     bullet = Bullet(self.rect.centerx, self.rect.top, self.current_weapon, angle)
@@ -767,10 +782,19 @@ class Player(pygame.sprite.Sprite):
             pygame.draw.ellipse(self.original_image, colors['core_color'], [42, 28, 4, 2])
             
     def switch_weapon(self):
+        # Reset beam state when switching weapons
+        self.beam_active = False
+        self.beam_start_time = 0
+        
         weapons = list(self.weapons.keys())
         current_index = weapons.index(self.current_weapon)
         self.current_weapon = weapons[(current_index + 1) % len(weapons)]
         cprint(f"Switched to {self.current_weapon}", "cyan")
+    
+    def stop_beam(self):
+        """Stop beam firing"""
+        self.beam_active = False
+        self.beam_start_time = 0
         
     def take_damage(self, amount):
         """Enhanced damage handling with shield effects"""

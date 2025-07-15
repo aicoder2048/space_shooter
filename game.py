@@ -441,8 +441,10 @@ class Game:
                     if event.key == pygame.K_ESCAPE:
                         self.state = 'paused'
                     elif event.key == pygame.K_SPACE:
+                        # Handle shooting for non-beam weapons
                         for ship in self.player_ships:
-                            ship.shoot()
+                            if ship.current_weapon != 'beam':
+                                ship.shoot()
                     elif event.key == pygame.K_TAB:
                         for ship in self.player_ships:
                             ship.switch_weapon()
@@ -568,6 +570,19 @@ class Game:
             self.menu.update_stars()
             
         elif self.state == 'playing':
+            # Handle continuous key presses for beam weapon
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_SPACE] and len(self.player_ships) > 0:
+                # Only handle continuous firing for beam weapon
+                if self.player_ships[0].current_weapon == 'beam':
+                    for ship in self.player_ships:
+                        ship.shoot()
+            else:
+                # Stop beam firing when space key is released
+                for ship in self.player_ships:
+                    if ship.current_weapon == 'beam':
+                        ship.stop_beam()
+            
             # Update all sprites
             self.all_sprites.update()
             
