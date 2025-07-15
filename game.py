@@ -830,11 +830,19 @@ class Game:
                 screen.blit(shoot_shadow, (10 + shadow_offset, shoot_y + shadow_offset))
                 screen.blit(shoot_text, (10, shoot_y))
                 
-                # 8. 隐藏面板提示
+                # 8. 暂停游戏提示
+                pause_shadow = small_font.render('按 ESC 键暂停游戏', True, shadow_color)
+                pause_text = small_font.render('按 ESC 键暂停游戏', True, (200, 200, 200))
+                
+                pause_y = shoot_y + 23  # 小字体间距稍小
+                screen.blit(pause_shadow, (10 + shadow_offset, pause_y + shadow_offset))
+                screen.blit(pause_text, (10, pause_y))
+                
+                # 9. 隐藏面板提示
                 hide_shadow = small_font.render('按 i 隐藏信息面板', True, shadow_color)
                 hide_text = small_font.render('按 i 隐藏信息面板', True, (150, 150, 150))  # 更浅的灰色
                 
-                hide_y = shoot_y + 23  # 小字体间距稍小
+                hide_y = pause_y + 23  # 小字体间距稍小
                 screen.blit(hide_shadow, (10 + shadow_offset, hide_y + shadow_offset))
                 screen.blit(hide_text, (10, hide_y))
             
