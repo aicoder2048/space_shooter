@@ -944,9 +944,9 @@ class Game:
                 s.fill(BLACK)
                 screen.blit(s, (0,0))
                 
-                pause_text = self.font.render('PAUSED', True, WHITE)
-                resume_text = self.font.render('Press ESC to Resume', True, WHITE)
-                quit_text = self.font.render('Press Q to Quit to Menu', True, WHITE)
+                pause_text = self.font.render('游戏暂停', True, WHITE)
+                resume_text = self.font.render('按 ESC 继续游戏', True, WHITE)
+                quit_text = self.font.render('按 Q 退出到菜单', True, WHITE)
                 
                 screen.blit(pause_text, 
                            (SCREEN_WIDTH//2 - pause_text.get_width()//2, 
